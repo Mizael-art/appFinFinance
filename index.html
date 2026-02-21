@@ -1,0 +1,4315 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark" data-tema-cor="roxo" data-tema-modo="escuro">
+<head>
+<base href="./">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FinFinance">
+<meta name="theme-color" content="#8B5CF6">
+<meta name="description" content="Controle financeiro pessoal inteligente">
+<title>FinFinance</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="themes.css">
+<link rel="stylesheet" href="mobile.css">
+<script>
+// Registrar Service Worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => console.log('✅ Service Worker registrado'))
+      .catch(err => console.log('❌ Service Worker falhou:', err));
+  });
+}
+</script>
+</head>
+<body>
+
+<!-- ═══ AUTH SCREEN (FinFinance V5) ═══ -->
+<div id="auth-screen" style="display:none;position:fixed;inset:0;z-index:99999;background:radial-gradient(ellipse at top,#1a1040 0%,#0a0a14 60%);align-items:center;justify-content:center;padding:1rem;font-family:'Outfit',sans-serif;">
+  <div style="width:100%;max-width:400px;">
+
+    <div style="text-align:center;margin-bottom:2rem;">
+      <div style="display:inline-flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <div style="width:44px;height:44px;background:linear-gradient(135deg,#8B5CF6,#A78BFA);border-radius:12px;display:flex;align-items:center;justify-content:center;">
+          <svg width="22" height="22" viewBox="0 0 40 40" fill="none"><path d="M20 4L36 13V27L20 36L4 27V13L20 4Z" fill="rgba(255,255,255,0.9)"/><path d="M13 20h14M20 13v14" stroke="#8B5CF6" stroke-width="2.5" stroke-linecap="round"/></svg>
+        </div>
+        <span style="font-size:22px;font-weight:800;color:#f1f5f9;"><span style="color:#A78BFA;">Fin</span>Finance</span>
+      </div>
+      <p style="color:#94a3b8;font-size:14px;margin:0;">Seu dinheiro, inteligente.</p>
+    </div>
+
+    <div style="background:rgba(20,16,40,0.92);backdrop-filter:blur(24px);border:1px solid rgba(139,92,246,0.25);border-radius:24px;padding:1.75rem;">
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:1.5rem;background:rgba(255,255,255,0.04);border-radius:12px;padding:4px;">
+        <button class="auth-tab active" data-tab="login" onclick="switchAuthTab('login')" style="padding:9px;border:none;border-radius:9px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;">Entrar</button>
+        <button class="auth-tab" data-tab="register" onclick="switchAuthTab('register')" style="padding:9px;border:none;border-radius:9px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;">Criar conta</button>
+      </div>
+
+      <div id="auth-error" style="display:none;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);border-radius:10px;padding:10px 14px;margin-bottom:14px;color:#f87171;font-size:13px;text-align:center;"></div>
+
+      <form id="auth-form-login" onsubmit="handleLogin(event)" style="display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <label style="display:block;font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em;">Email</label>
+          <input id="auth-email" type="email" required placeholder="seu@email.com" style="width:100%;padding:11px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(139,92,246,0.25);border-radius:10px;color:#f1f5f9;font-size:15px;font-family:'Outfit',sans-serif;box-sizing:border-box;outline:none;" />
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em;">Senha</label>
+          <input id="auth-password" type="password" required placeholder="••••••••" style="width:100%;padding:11px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(139,92,246,0.25);border-radius:10px;color:#f1f5f9;font-size:15px;font-family:'Outfit',sans-serif;box-sizing:border-box;outline:none;" />
+        </div>
+        <button id="btn-login" type="submit" style="width:100%;padding:13px;background:linear-gradient(135deg,#8B5CF6,#6D28D9);border:none;border-radius:12px;color:white;font-size:15px;font-weight:700;font-family:'Outfit',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:2px;">Entrar</button>
+        <button type="button" onclick="showForgotPassword()" style="background:none;border:none;color:#64748b;font-size:13px;font-family:'Outfit',sans-serif;cursor:pointer;margin-top:4px;text-align:center;width:100%;padding:4px;">Esqueci minha senha</button>
+      </form>
+
+      <form id="auth-form-register" onsubmit="handleRegister(event)" style="display:none;flex-direction:column;gap:14px;">
+        <div>
+          <label style="display:block;font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em;">Nome</label>
+          <input id="reg-nome" type="text" required placeholder="Seu nome" style="width:100%;padding:11px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(139,92,246,0.25);border-radius:10px;color:#f1f5f9;font-size:15px;font-family:'Outfit',sans-serif;box-sizing:border-box;outline:none;" />
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em;">Email</label>
+          <input id="reg-email" type="email" required placeholder="seu@email.com" style="width:100%;padding:11px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(139,92,246,0.25);border-radius:10px;color:#f1f5f9;font-size:15px;font-family:'Outfit',sans-serif;box-sizing:border-box;outline:none;" />
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em;">Senha</label>
+          <input id="reg-password" type="password" required placeholder="Mínimo 6 caracteres" minlength="6" style="width:100%;padding:11px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(139,92,246,0.25);border-radius:10px;color:#f1f5f9;font-size:15px;font-family:'Outfit',sans-serif;box-sizing:border-box;outline:none;" />
+        </div>
+        <button id="btn-register" type="submit" style="width:100%;padding:13px;background:linear-gradient(135deg,#8B5CF6,#6D28D9);border:none;border-radius:12px;color:white;font-size:15px;font-weight:700;font-family:'Outfit',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:2px;">Criar minha conta</button>
+      </form>
+
+      <!-- Form de recuperação de senha -->
+      <form id="auth-form-forgot" onsubmit="handleForgotPassword(event)" style="display:none;flex-direction:column;gap:14px;">
+        <p style="color:#94a3b8;font-size:14px;text-align:center;margin:0 0 4px;">Digite seu email e enviaremos um link para redefinir sua senha.</p>
+        <div>
+          <label style="display:block;font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em;">Email</label>
+          <input id="forgot-email" type="email" required placeholder="seu@email.com" style="width:100%;padding:11px 14px;background:rgba(255,255,255,0.05);border:1px solid rgba(139,92,246,0.25);border-radius:10px;color:#f1f5f9;font-size:15px;font-family:'Outfit',sans-serif;box-sizing:border-box;outline:none;" />
+        </div>
+        <button id="btn-forgot" type="submit" style="width:100%;padding:13px;background:linear-gradient(135deg,#8B5CF6,#6D28D9);border:none;border-radius:12px;color:white;font-size:15px;font-weight:700;font-family:'Outfit',sans-serif;cursor:pointer;">Enviar link de recuperação</button>
+        <button type="button" onclick="hideForgotPassword()" style="background:none;border:none;color:#64748b;font-size:13px;font-family:'Outfit',sans-serif;cursor:pointer;text-align:center;width:100%;padding:4px;">← Voltar para o login</button>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<style>
+.auth-tab{background:transparent;color:#64748b;}
+.auth-tab.active{background:rgba(139,92,246,0.18);color:#A78BFA;}
+.auth-spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:authspin .7s linear infinite;display:inline-block;vertical-align:middle;}
+@keyframes authspin{to{transform:rotate(360deg);}}
+</style>
+
+<!-- ═══ SPLASH SCREEN ═══ -->
+<div id="splash" class="splash">
+  <div class="splash-bg">
+    <div class="splash-orb orb1"></div>
+    <div class="splash-orb orb2"></div>
+    <div class="splash-orb orb3"></div>
+    <div class="splash-grid"></div>
+  </div>
+  <div class="splash-content">
+    <div class="splash-logo">
+      <div class="splash-icon">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+          <path d="M20 4L36 13V27L20 36L4 27V13L20 4Z" fill="url(#grad)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+          <path d="M13 20h14M20 13v14" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+          <defs>
+            <linearGradient id="grad" x1="4" y1="4" x2="36" y2="36">
+              <stop stop-color="#A78BFA"/>
+              <stop offset="1" stop-color="#4C1D95"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <div class="splash-brand">
+        <span class="splash-fin">Fin</span><span class="splash-finance">Finance</span>
+      </div>
+    </div>
+    <p class="splash-tagline">Seu dinheiro, inteligente.</p>
+    <div class="splash-loader">
+      <div class="splash-bar"></div>
+    </div>
+    <p class="splash-status" id="splash-status">Iniciando...</p>
+  </div>
+</div>
+
+<!-- ═══ ONBOARDING ═══ -->
+<div id="onboarding" class="onboarding hidden">
+  <div class="onb-bg">
+    <div class="onb-orb"></div>
+  </div>
+  <div class="onb-card">
+    <div class="onb-step active" id="onb-0">
+      <div class="onb-emoji">👋</div>
+      <h2>Bem-vindo ao FinFinance</h2>
+      <p>Controle suas finanças com inteligência. Vamos começar configurando seu perfil.</p>
+      <button class="btn-primary" onclick="nextOnb(1)">Vamos começar →</button>
+    </div>
+    <div class="onb-step" id="onb-1">
+      <div class="onb-emoji">👤</div>
+      <h2>Como você se chama?</h2>
+      <input type="text" id="onb-nome" class="onb-input" placeholder="Seu nome" autofocus>
+      <button class="btn-primary" onclick="nextOnb(2)">Próximo →</button>
+    </div>
+    <div class="onb-step" id="onb-2">
+      <div class="onb-emoji">💰</div>
+      <h2>Qual é sua renda mensal?</h2>
+      <input type="number" id="onb-salario" class="onb-input" placeholder="Ex: 5000" min="0" step="0.01">
+      <p class="onb-hint">Inclua salário e outras fontes de renda</p>
+      <button class="btn-primary" onclick="nextOnb(3)">Próximo →</button>
+    </div>
+    <div class="onb-step" id="onb-3">
+      <div class="onb-emoji">🎨</div>
+      <h2>Escolha seu tema</h2>
+      <p style="margin-bottom: 1rem;">Personalize as cores do app</p>
+      <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; margin-bottom: 1rem;">
+        <div onclick="selecionarOnbTema('roxo')" class="onb-tema-opt active" data-cor="roxo" style="height: 50px; border-radius: 10px; background: linear-gradient(135deg, #8B5CF6, #A78BFA); cursor: pointer; display: flex; align-items: center; justify-content: center; border: 2px solid rgba(139,92,246,0.5); color: white; font-size: 1.2rem;">✓</div>
+        <div onclick="selecionarOnbTema('verde')" class="onb-tema-opt" data-cor="verde" style="height: 50px; border-radius: 10px; background: linear-gradient(135deg, #10B981, #34D399); cursor: pointer; display: flex; align-items: center; justify-content: center; border: 2px solid transparent;"></div>
+        <div onclick="selecionarOnbTema('vermelho')" class="onb-tema-opt" data-cor="vermelho" style="height: 50px; border-radius: 10px; background: linear-gradient(135deg, #EF4444, #F87171); cursor: pointer; display: flex; align-items: center; justify-content: center; border: 2px solid transparent;"></div>
+        <div onclick="selecionarOnbTema('branco')" class="onb-tema-opt" data-cor="branco" style="height: 50px; border-radius: 10px; background: linear-gradient(135deg, #F4F4F5, #FFFFFF); cursor: pointer; display: flex; align-items: center; justify-content: center; border: 2px solid #E4E4E7;"></div>
+        <div onclick="selecionarOnbTema('preto')" class="onb-tema-opt" data-cor="preto" style="height: 50px; border-radius: 10px; background: linear-gradient(135deg, #18181B, #09090B); cursor: pointer; display: flex; align-items: center; justify-content: center; border: 2px solid transparent;"></div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1.5rem;">
+        <div onclick="selecionarOnbModo('claro')" class="onb-modo-opt" data-modo="claro" style="padding: 0.75rem; border-radius: 10px; background: white; color: #18181B; cursor: pointer; text-align: center; font-weight: 600; border: 2px solid transparent;">☀️ Claro</div>
+        <div onclick="selecionarOnbModo('escuro')" class="onb-modo-opt active" data-modo="escuro" style="padding: 0.75rem; border-radius: 10px; background: #18181B; color: white; cursor: pointer; text-align: center; font-weight: 600; border: 2px solid rgba(139,92,246,0.5);">🌙 Escuro</div>
+      </div>
+      <button class="btn-primary" onclick="finishOnbV2()">Começar →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let onbTemaEscolhido = { cor: 'roxo', modo: 'escuro' };
+
+function selecionarOnbTema(cor) {
+  onbTemaEscolhido.cor = cor;
+  document.querySelectorAll('.onb-tema-opt').forEach(el => {
+    if (el.dataset.cor === cor) {
+      el.classList.add('active');
+      el.innerHTML = '✓';
+      el.style.borderColor = 'rgba(255,255,255,0.5)';
+    } else {
+      el.classList.remove('active');
+      el.innerHTML = '';
+      el.style.borderColor = 'transparent';
+    }
+  });
+}
+
+function selecionarOnbModo(modo) {
+  onbTemaEscolhido.modo = modo;
+  document.querySelectorAll('.onb-modo-opt').forEach(el => {
+    if (el.dataset.modo === modo) {
+      el.classList.add('active');
+      el.style.borderColor = 'rgba(139,92,246,0.5)';
+    } else {
+      el.classList.remove('active');
+      el.style.borderColor = 'transparent';
+    }
+  });
+}
+
+async function finishOnbV2() {
+  const nome = document.getElementById('onb-nome')?.value || 'Usuário';
+  const salario = parseFloat(document.getElementById('onb-salario')?.value || 0);
+  
+  await DB.updateProfile({
+    nome,
+    salario,
+    outras_rendas: 0,
+    dia_pagamento: 5,
+    tema_cor: onbTemaEscolhido.cor,
+    tema_modo: onbTemaEscolhido.modo,
+    onboarding_done: 1
+  });
+  
+  document.getElementById('onboarding').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  
+  await aplicarTema();
+  
+  const p = await DB.getProfile();
+  updateMonthLabel();
+  loadDashboard();
+  loadCartoes();
+  
+  if (window.innerWidth <= 768) {
+    criarBottomNav();
+  }
+}
+</script>
+
+<!-- ═══ APP PRINCIPAL ═══ -->
+<div id="app" class="app hidden">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-top">
+      <div class="logo">
+        <div class="logo-gem">◆</div>
+        <span class="logo-text">Fin<strong>Finance</strong></span>
+      </div>
+      <nav class="nav">
+        <a class="nav-link active" data-view="dashboard" href="#" onclick="goto('dashboard',this)">
+          <i class="ni">⬡</i><span>Dashboard</span>
+        </a>
+        <a class="nav-link" data-view="dicas" href="#" onclick="goto('dicas',this)">
+          <i class="ni">◈</i><span>Dicas Inteligentes</span>
+          <span class="nav-badge" id="nav-score-badge"></span>
+        </a>
+        <a class="nav-link" data-view="cartoes" href="#" onclick="goto('cartoes',this)">
+          <i class="ni">⊡</i><span>Cartões</span>
+        </a>
+        <a class="nav-link" data-view="despesas" href="#" onclick="goto('despesas',this)">
+          <i class="ni">↕</i><span>Despesas</span>
+        </a>
+        <a class="nav-link" data-view="gastos" href="#" onclick="goto('gastos',this)">
+          <i class="ni">💸</i><span>Gastos Totais</span>
+        </a>
+        <a class="nav-link" data-view="contas" href="#" onclick="goto('contas',this)">
+          <i class="ni">⊗</i><span>Contas Fixas</span>
+        </a>
+        <a class="nav-link" data-view="historico" href="#" onclick="goto('historico',this)">
+          <i class="ni">◎</i><span>Histórico</span>
+        </a>
+        <a class="nav-link" data-view="investimentos" href="#" onclick="goto('investimentos',this)">
+          <i class="ni">📈</i><span>Investimentos</span>
+        </a>
+      </nav>
+    </div>
+    <div class="sidebar-foot">
+      <a class="nav-link" data-view="perfil" href="#" onclick="goto('perfil',this)">
+        <i class="ni">◉</i><span>Perfil</span>
+      </a>
+      <button class="theme-btn" onclick="toggleTema()" id="tema-btn" title="Alternar tema">
+        <span id="tema-icon">☀</span>
+      </button>
+      <button class="theme-btn" onclick="AUTH.handleLogout()" title="Sair da conta" style="font-size:1.1rem;" id="btn-logout">⏻</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="month-ctrl">
+        <button class="mnav" onclick="changeMonth(-1)">‹</button>
+        <span id="month-lbl" class="month-lbl"></span>
+        <button class="mnav" onclick="changeMonth(1)">›</button>
+      </div>
+      <div class="topbar-right">
+        <button class="alert-btn" id="alert-btn" onclick="toggleAlerts()">
+          🔔<span class="alert-count" id="alert-count" style="display:none">0</span>
+        </button>
+        <div class="user-pill" onclick="goto('perfil',null)">
+          <div class="user-av" id="user-av">U</div>
+          <span id="user-nm">Usuário</span>
+          <span id="ff-plan-badge"></span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ALERTS PANEL -->
+    <div class="alerts-panel" id="alerts-panel" style="display:none">
+      <div class="ap-head">
+        <span>Alertas</span>
+        <button onclick="clearAlerts()">Limpar tudo</button>
+      </div>
+      <div id="ap-list"></div>
+    </div>
+
+    <!-- ═══ VIEWS ═══ -->
+
+    <!-- DASHBOARD -->
+    <div class="view active" id="v-dashboard">
+      <div class="view-head">
+        <h1>Dashboard</h1>
+        <button class="btn-primary" onclick="openModal('despesa')">+ Nova Despesa</button>
+      </div>
+
+      <div class="kpi-row">
+        <div class="kpi green kpi-clickable" onclick="goto('perfil',null)" style="cursor:pointer">
+          <div class="kpi-top"><span class="kpi-lbl">Renda do mês</span><span class="kpi-icon">↑</span></div>
+          <div class="kpi-val" id="k-renda">—</div>
+          <div class="kpi-sub" id="k-renda-sub">—</div>
+          <div class="kpi-detail">ver detalhes →</div>
+        </div>
+        <div class="kpi red kpi-clickable" onclick="goto('gastos',null)" style="cursor:pointer">
+          <div class="kpi-top"><span class="kpi-lbl">Gastos totais</span><span class="kpi-icon">↓</span></div>
+          <div class="kpi-val" id="k-gasto">—</div>
+          <div class="kpi-sub" id="k-gasto-sub">—</div>
+          <div class="kpi-detail">ver detalhes →</div>
+        </div>
+        <div class="kpi purple kpi-clickable" onclick="goto('historico',null)" style="cursor:pointer">
+          <div class="kpi-top"><span class="kpi-lbl">Saldo livre</span><span class="kpi-icon">◈</span></div>
+          <div class="kpi-val" id="k-saldo">—</div>
+          <div class="kpi-sub">Renda − Gastos</div>
+          <div class="kpi-detail">ver detalhes →</div>
+        </div>
+        <div class="kpi orange kpi-clickable" onclick="goto('cartoes',null)" style="cursor:pointer">
+          <div class="kpi-top"><span class="kpi-lbl">Faturas crédito</span><span class="kpi-icon">💳</span></div>
+          <div class="kpi-val" id="k-cred">—</div>
+          <div class="kpi-sub" id="k-cred-sub">—</div>
+          <div class="kpi-detail">ver detalhes →</div>
+        </div>
+      </div>
+
+      <!-- Score do FinFinance -->
+      <div class="score-banner" id="score-banner" onclick="goto('dicas',null)" style="cursor:pointer" tabindex="-1">
+        <div class="score-left">
+          <div class="score-circle" id="score-circle">
+            <svg viewBox="0 0 80 80" class="score-svg">
+              <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="6"/>
+              <circle cx="40" cy="40" r="34" fill="none" stroke="url(#scoreGrad)" stroke-width="6"
+                stroke-linecap="round" stroke-dasharray="213.6" stroke-dashoffset="213.6"
+                id="score-arc" style="transform:rotate(-90deg);transform-origin:center"/>
+              <defs>
+                <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#A78BFA"/>
+                  <stop offset="100%" stop-color="#34D399"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            <span class="score-num" id="score-num">—</span>
+          </div>
+          <div class="score-info">
+            <div class="score-title">Score Financeiro</div>
+            <div class="score-desc" id="score-desc">—</div>
+          </div>
+        </div>
+        <div class="score-right">
+          <div class="score-hint">Ver dicas inteligentes →</div>
+        </div>
+      </div>
+
+      <!-- Progress -->
+      <div class="progress-card">
+        <div class="progress-head">
+          <span>Orçamento comprometido</span>
+          <span id="prog-pct" class="mono">0%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="prog-fill" style="width:0%"></div>
+        </div>
+        <div class="progress-foot" id="prog-foot">Configure sua renda no Perfil</div>
+      </div>
+
+      <!-- Charts -->
+      <div class="charts-row">
+        <div class="card chart-card">
+          <div class="card-head"><h3>Gastos por categoria</h3></div>
+          <div class="chart-body"><canvas id="ch-cat"></canvas></div>
+        </div>
+        <div class="card chart-card">
+          <div class="card-head"><h3>Evolução — 6 meses</h3></div>
+          <div class="chart-body"><canvas id="ch-evo"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Bottom -->
+      <div class="two-col">
+        <div class="card">
+          <div class="card-head">
+            <h3>Cartões</h3>
+            <a href="#" onclick="goto('cartoes',null)" class="card-more">ver todos →</a>
+          </div>
+          <div id="dash-cards"></div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <h3>Contas Fixas</h3>
+            <a href="#" onclick="goto('contas',null)" class="card-more">gerenciar →</a>
+          </div>
+          <div id="dash-contas"></div>
+          <div class="card-total" id="dash-contas-total"></div>
+        </div>
+      </div>
+
+      <!-- Transações -->
+      <div class="card mt">
+        <div class="card-head">
+          <h3>Transações recentes</h3>
+          <a href="#" onclick="goto('despesas',null)" class="card-more">ver todas →</a>
+        </div>
+        <div id="dash-txs"></div>
+      </div>
+    </div>
+
+    <!-- ═══ DICAS INTELIGENTES ═══ -->
+    <div class="view" id="v-dicas">
+      <div class="view-head">
+        <h1>💡 Dicas Inteligentes</h1>
+        <button class="btn-ghost" onclick="reloadDicas()">↺ Atualizar</button>
+      </div>
+
+      <!-- Diagnóstico Principal -->
+      <div class="diagnostico-hero" id="diag-hero">
+        <div class="diag-left">
+          <div class="diag-score-big" id="diag-score-big">—</div>
+          <div class="diag-label">Score Financeiro</div>
+          <div class="diag-bar-wrap">
+            <div class="diag-bar-fill" id="diag-bar-fill" style="width:0%"></div>
+          </div>
+          <div class="diag-nivel" id="diag-nivel"></div>
+        </div>
+        <div class="diag-right">
+          <div class="diag-emoji" id="diag-emoji">🤔</div>
+          <div class="diag-texto" id="diag-texto">Analisando...</div>
+        </div>
+      </div>
+
+      <!-- Resumo de categorias -->
+      <div class="resumo-cats" id="resumo-cats"></div>
+
+      <!-- Grid dicas + pontos fortes -->
+      <div class="dicas-layout">
+        <div>
+          <h2 class="section-title">⚠️ Onde melhorar</h2>
+          <div id="dicas-list"></div>
+        </div>
+        <div>
+          <h2 class="section-title">✅ Pontos fortes</h2>
+          <div id="pontos-list"></div>
+          <!-- Economia potencial -->
+          <div class="economia-card" id="economia-card" style="display:none">
+            <div class="eco-icon">💸</div>
+            <div class="eco-info">
+              <div class="eco-lbl">Potencial de economia</div>
+              <div class="eco-val" id="eco-val">R$ 0,00</div>
+              <div class="eco-sub">seguindo todas as sugestões</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comparativo com metas -->
+      <div class="card mt">
+        <div class="card-head"><h3>📊 Seus gastos vs. Boas Práticas</h3></div>
+        <div class="metas-table" id="metas-table"></div>
+      </div>
+    </div>
+
+    <!-- ═══ CARTÕES ═══ -->
+    <div class="view" id="v-cartoes">
+      <div class="view-head">
+        <h1>Cartões de Crédito</h1>
+        <button class="btn-primary" onclick="openModal('cartao')">+ Novo Cartão</button>
+      </div>
+      <div class="cards-grid" id="cards-grid"></div>
+      <div class="card mt" id="cards-resumo" style="display:none">
+        <div class="card-head"><h3>Resumo Geral</h3></div>
+        <div class="resumo-row" id="cards-resumo-row"></div>
+      </div>
+    </div>
+
+    <!-- ═══ DESPESAS ═══ -->
+    <div class="view" id="v-despesas">
+      <div class="view-head">
+        <h1>Despesas</h1>
+        <button class="btn-primary" onclick="openModal('despesa')">+ Adicionar</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;color:var(--txt2);font-size:0.88rem">
+        <span>📅 Exibindo:</span>
+        <div style="display:flex;align-items:center;gap:0.5rem;background:var(--surf2);border-radius:8px;padding:0.35rem 0.75rem">
+          <button class="mnav" onclick="changeMonth(-1)" style="background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--txt2)">‹</button>
+          <span id="desp-month-lbl" style="font-weight:600;color:var(--txt);min-width:120px;text-align:center"></span>
+          <button class="mnav" onclick="changeMonth(1)" style="background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--txt2)">›</button>
+        </div>
+      </div>
+      <div class="filters">
+        <input type="text" id="busca" placeholder="🔍 Buscar..." class="filter-input" oninput="filtrarDespesas()">
+        <select id="f-cat" class="filter-sel" onchange="filtrarDespesas()">
+          <option value="">Todas as categorias</option>
+        </select>
+        <select id="f-forma" class="filter-sel" onchange="filtrarDespesas()">
+          <option value="">Todas as formas</option>
+          <option value="dinheiro">Dinheiro</option>
+          <option value="debito">Débito</option>
+          <option value="credito">Crédito</option>
+          <option value="parcelado">Parcelado</option>
+        </select>
+        <div class="filter-total" id="filter-total"></div>
+      </div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr>
+            <th>Descrição</th><th>Categoria</th><th>Data</th>
+            <th>Pagamento</th><th>Valor</th><th></th>
+          </tr></thead>
+          <tbody id="desp-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ GASTOS TOTAIS ═══ -->
+    <div class="view" id="v-gastos">
+      <div class="view-head">
+        <h1>💸 Gastos Totais</h1>
+        <button class="btn-primary" onclick="openModal('despesa')">+ Adicionar</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;color:var(--txt2);font-size:0.88rem">
+        <span>📅 Mês:</span>
+        <div style="display:flex;align-items:center;gap:0.5rem;background:var(--surf2);border-radius:8px;padding:0.35rem 0.75rem">
+          <button class="mnav" onclick="changeMonth(-1)" style="background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--txt2)">‹</button>
+          <span id="gastos-month-lbl" style="font-weight:600;color:var(--txt);min-width:120px;text-align:center"></span>
+          <button class="mnav" onclick="changeMonth(1)" style="background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--txt2)">›</button>
+        </div>
+      </div>
+      <!-- KPIs resumo -->
+      <div class="kpi-row" style="grid-template-columns:repeat(3,1fr);margin-bottom:1.25rem" id="gastos-kpis">
+        <div class="kpi red"><div class="kpi-top"><span class="kpi-lbl">Despesas</span><span class="kpi-icon">🧾</span></div><div class="kpi-val" id="gt-desp">—</div><div class="kpi-sub" id="gt-desp-n">—</div></div>
+        <div class="kpi orange"><div class="kpi-top"><span class="kpi-lbl">Contas fixas</span><span class="kpi-icon">📋</span></div><div class="kpi-val" id="gt-fixo">—</div><div class="kpi-sub" id="gt-fixo-n">—</div></div>
+        <div class="kpi purple"><div class="kpi-top"><span class="kpi-lbl">Total geral</span><span class="kpi-icon">Σ</span></div><div class="kpi-val" id="gt-total">—</div><div class="kpi-sub">do mês</div></div>
+      </div>
+      <!-- Filtros -->
+      <div class="filters">
+        <input type="text" id="gt-busca" placeholder="🔍 Buscar..." class="filter-input" oninput="filtrarGastos()">
+        <select id="gt-cat" class="filter-sel" onchange="filtrarGastos()">
+          <option value="">Todas as categorias</option>
+        </select>
+        <select id="gt-tipo" class="filter-sel" onchange="filtrarGastos()">
+          <option value="">Todos os tipos</option>
+          <option value="despesa">Despesas</option>
+          <option value="fixa">Contas Fixas</option>
+        </select>
+        <div class="filter-total" id="gt-filter-total"></div>
+      </div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr>
+            <th>Descrição</th><th>Categoria</th><th>Data / Venc.</th>
+            <th>Tipo</th><th>Valor</th><th></th>
+          </tr></thead>
+          <tbody id="gastos-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ CONTAS FIXAS ═══ -->
+    <div class="view" id="v-contas">
+      <div class="view-head">
+        <h1>Contas Fixas</h1>
+        <button class="btn-primary" onclick="openModal('conta')">+ Nova Conta</button>
+      </div>
+      <div class="contas-grid" id="contas-grid"></div>
+    </div>
+
+    <!-- ═══ HISTÓRICO ═══ -->
+    <div class="view" id="v-historico">
+      <div class="view-head"><h1>Histórico Financeiro</h1></div>
+      <div class="card">
+        <div class="card-head"><h3>Evolução de gastos — 12 meses</h3></div>
+        <div class="chart-body big"><canvas id="ch-hist"></canvas></div>
+      </div>
+      <div class="hist-cards" id="hist-cards"></div>
+    </div>
+
+    <!-- ═══ PERFIL ═══ -->
+    <div class="view" id="v-perfil">
+      <div class="view-head"><h1>Perfil Financeiro</h1></div>
+      <div class="perfil-wrap">
+        <div class="card perfil-card">
+          <div class="perfil-av" id="perfil-av">U</div>
+          <div class="form-group">
+            <label>Nome</label>
+            <input type="text" id="p-nome" class="form-input" placeholder="Seu nome">
+          </div>
+          <div class="form-row2">
+            <div class="form-group">
+              <label>Salário mensal</label>
+              <input type="number" id="p-sal" class="form-input" placeholder="0,00" min="0" step="0.01">
+            </div>
+            <div class="form-group">
+              <label>Outras rendas</label>
+              <input type="number" id="p-out" class="form-input" placeholder="0,00" min="0" step="0.01">
+            </div>
+          </div>
+          <div class="form-row2">
+            <div class="form-group">
+              <label>Dia de pagamento</label>
+              <input type="number" id="p-dia" class="form-input" placeholder="5" min="1" max="31">
+            </div>
+            <div class="form-group">
+              <label>Renda total</label>
+              <input type="text" id="p-tot" class="form-input readonly" readonly>
+            </div>
+          </div>
+          <button class="btn-primary full" onclick="savePerfil()">Salvar Perfil</button>
+          
+          <!-- Tema no perfil desktop -->
+          <div class="perfil-tema-section" id="perfil-tema-section">
+            <label>🎨 Cor do tema</label>
+            <div class="perfil-tema-cores" id="perfil-tema-cores"></div>
+            <label>Modo</label>
+            <div class="perfil-tema-modos" id="perfil-tema-modos"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ INVESTIMENTOS ═══ -->
+    <div class="view" id="v-investimentos">
+      <div class="view-head">
+        <h1>📈 Investimentos</h1>
+        <button class="btn-primary" onclick="openModalInvestimento()">+ Novo Investimento</button>
+      </div>
+
+      <!-- KPIs investimentos -->
+      <div class="kpi-row" id="inv-kpis">
+        <div class="kpi green">
+          <div class="kpi-top"><span class="kpi-lbl">Patrimônio total</span><span class="kpi-icon">💰</span></div>
+          <div class="kpi-val" id="inv-patrimonio">R$ 0,00</div>
+          <div class="kpi-sub">Valor atual</div>
+        </div>
+        <div class="kpi purple">
+          <div class="kpi-top"><span class="kpi-lbl">Total investido</span><span class="kpi-icon">📥</span></div>
+          <div class="kpi-val" id="inv-aportado">R$ 0,00</div>
+          <div class="kpi-sub">Soma de aportes</div>
+        </div>
+        <div class="kpi orange">
+          <div class="kpi-top"><span class="kpi-lbl">Rentabilidade</span><span class="kpi-icon">↑</span></div>
+          <div class="kpi-val" id="inv-rent">0%</div>
+          <div class="kpi-sub" id="inv-rent-sub">Ganho/Perda</div>
+        </div>
+      </div>
+
+      <div class="inv-grid" id="inv-grid">
+        <div class="empty"><div class="empty-ico">📈</div><p>Nenhum investimento cadastrado</p></div>
+      </div>
+    </div>
+
+    </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ═══ MODALS ═══ -->
+
+<!-- Despesa -->
+<div class="overlay" id="m-despesa" onclick="closeOverlay(event,'m-despesa')">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Nova Despesa</h2>
+      <button class="close-btn" onclick="closeModal('m-despesa')">✕</button>
+    </div>
+    <form onsubmit="saveDespesa(event)">
+      <div class="form-group">
+        <label>Descrição *</label>
+        <input type="text" id="d-nome" class="form-input" required placeholder="Ex: Supermercado Extra">
+      </div>
+      <div class="form-row2">
+        <div class="form-group">
+          <label>Valor *</label>
+          <input type="number" id="d-val" class="form-input" required min="0.01" step="0.01" placeholder="0,00">
+        </div>
+        <div class="form-group">
+          <label>Data *</label>
+          <input type="date" id="d-data" class="form-input" required>
+        </div>
+      </div>
+      <div class="form-row2">
+        <div class="form-group">
+          <label>Categoria *</label>
+          <select id="d-cat" class="form-input" required>
+            <option value="">Selecionar</option>
+            <option>Alimentação</option><option>Moradia</option><option>Transporte</option>
+            <option>Saúde</option><option>Educação</option><option>Lazer</option>
+            <option>Vestuário</option><option>Tecnologia</option><option>Viagem</option>
+            <option>Delivery</option><option>Assinaturas</option><option>Investimento</option>
+            <option>Outros</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Forma *</label>
+          <select id="d-forma" class="form-input" required onchange="onFormaChange()">
+            <option value="">Selecionar</option>
+            <option value="dinheiro">💵 Dinheiro</option>
+            <option value="debito">💳 Débito</option>
+            <option value="credito">💳 Crédito</option>
+            <option value="parcelado">📦 Parcelado</option>
+          </select>
+        </div>
+      </div>
+      <div id="cartao-row" style="display:none" class="form-group">
+        <label>Cartão</label>
+        <select id="d-cartao" class="form-input"></select>
+      </div>
+      <div id="parcela-row" style="display:none" class="form-group">
+        <label>Número de parcelas</label>
+        <input type="number" id="d-parc" class="form-input" min="2" max="60" value="2" placeholder="2">
+      </div>
+      <div class="form-group">
+        <label>Observação</label>
+        <input type="text" id="d-obs" class="form-input" placeholder="Opcional">
+      </div>
+      <button type="submit" class="btn-primary full">Adicionar Despesa</button>
+    </form>
+  </div>
+</div>
+
+<!-- Cartão -->
+<div class="overlay" id="m-cartao" onclick="closeOverlay(event,'m-cartao')">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="m-cartao-title">Novo Cartão</h2>
+      <button class="close-btn" onclick="closeModal('m-cartao')">✕</button>
+    </div>
+    <form onsubmit="saveCartao(event)">
+      <input type="hidden" id="c-id">
+      <div class="form-row2">
+        <div class="form-group">
+          <label>Nome do cartão *</label>
+          <input type="text" id="c-nome" class="form-input" required placeholder="Ex: Nu Ultravioleta">
+        </div>
+        <div class="form-group">
+          <label>Banco *</label>
+          <input type="text" id="c-banco" class="form-input" required placeholder="Ex: Nubank">
+        </div>
+      </div>
+      <div class="form-row2">
+        <div class="form-group">
+          <label>Bandeira</label>
+          <select id="c-band" class="form-input">
+            <option>Mastercard</option><option>Visa</option><option>Elo</option>
+            <option>American Express</option><option>Hipercard</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Limite total *</label>
+          <input type="number" id="c-lim" class="form-input" required min="1" step="1" placeholder="5000">
+        </div>
+      </div>
+      <div class="form-row2">
+        <div class="form-group">
+          <label>Dia de fechamento *</label>
+          <input type="number" id="c-fech" class="form-input" required min="1" max="31" placeholder="25">
+        </div>
+        <div class="form-group">
+          <label>Dia de vencimento *</label>
+          <input type="number" id="c-venc" class="form-input" required min="1" max="31" placeholder="2">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Cor do cartão</label>
+        <div class="color-row" id="color-row">
+          <div class="col-opt sel" data-c="#8B5CF6" style="background:#8B5CF6" onclick="pickColor(this)">✓</div>
+          <div class="col-opt" data-c="#2563EB" style="background:#2563EB" onclick="pickColor(this)"></div>
+          <div class="col-opt" data-c="#059669" style="background:#059669" onclick="pickColor(this)"></div>
+          <div class="col-opt" data-c="#DC2626" style="background:#DC2626" onclick="pickColor(this)"></div>
+          <div class="col-opt" data-c="#D97706" style="background:#D97706" onclick="pickColor(this)"></div>
+          <div class="col-opt" data-c="#0891B2" style="background:#0891B2" onclick="pickColor(this)"></div>
+          <div class="col-opt" data-c="#BE185D" style="background:#BE185D" onclick="pickColor(this)"></div>
+          <div class="col-opt" data-c="#1D4ED8" style="background:#1D4ED8" onclick="pickColor(this)"></div>
+        </div>
+        <input type="hidden" id="c-cor" value="#8B5CF6">
+      </div>
+      <button type="submit" class="btn-primary full">Salvar Cartão</button>
+    </form>
+  </div>
+</div>
+
+<!-- Conta Fixa -->
+<div class="overlay" id="m-conta" onclick="closeOverlay(event,'m-conta')">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="m-conta-title">Nova Conta Fixa</h2>
+      <button class="close-btn" onclick="closeModal('m-conta')">✕</button>
+    </div>
+    <form onsubmit="saveConta(event)">
+      <input type="hidden" id="cf-id">
+      <div class="form-group">
+        <label>Nome *</label>
+        <input type="text" id="cf-nome" class="form-input" required placeholder="Ex: Aluguel">
+      </div>
+      <div class="form-row2">
+        <div class="form-group">
+          <label>Valor *</label>
+          <input type="number" id="cf-val" class="form-input" required min="1" step="0.01" placeholder="0,00">
+        </div>
+        <div class="form-group">
+          <label>Dia de vencimento *</label>
+          <input type="number" id="cf-dia" class="form-input" required min="1" max="31" placeholder="10">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Categoria</label>
+        <select id="cf-cat" class="form-input">
+          <option>Moradia</option><option>Educação</option><option>Saúde</option>
+          <option>Tecnologia</option><option>Transporte</option><option>Assinaturas</option><option>Outros</option>
+        </select>
+      </div>
+      <button type="submit" class="btn-primary full">Salvar Conta</button>
+    </form>
+  </div>
+</div>
+
+<!-- Investimento -->
+<div class="overlay" id="m-investimento" onclick="closeOverlay(event,'m-investimento')">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="m-inv-title">Novo Investimento</h2>
+      <button class="close-btn" onclick="closeModal('m-investimento')">✕</button>
+    </div>
+    <form onsubmit="saveInvestimento(event)">
+      <input type="hidden" id="inv-id">
+      <div class="form-group">
+        <label>Nome *</label>
+        <input type="text" id="inv-nome" class="form-input" required placeholder="Ex: Tesouro Direto, Nubank CDB...">
+      </div>
+      <div class="form-row2">
+        <div class="form-group">
+          <label>Tipo *</label>
+          <select id="inv-tipo" class="form-input" required>
+            <option value="">Selecionar</option>
+            <option value="renda_fixa">Renda Fixa</option>
+            <option value="renda_variavel">Renda Variável</option>
+            <option value="fii">FII</option>
+            <option value="criptomoeda">Criptomoeda</option>
+            <option value="previdencia">Previdência</option>
+            <option value="poupanca">Poupança</option>
+            <option value="outros">Outros</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Valor investido *</label>
+          <input type="number" id="inv-aportado" class="form-input" required min="0.01" step="0.01" placeholder="0,00">
+        </div>
+      </div>
+      <div class="form-row2">
+        <div class="form-group">
+          <label>Valor atual</label>
+          <input type="number" id="inv-atual" class="form-input" min="0" step="0.01" placeholder="Deixe vazio se igual">
+        </div>
+        <div class="form-group">
+          <label>Rentabilidade esperada</label>
+          <input type="text" id="inv-rent-info" class="form-input" placeholder="Ex: CDI 100%, 12% a.a.">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Observação</label>
+        <input type="text" id="inv-obs" class="form-input" placeholder="Opcional">
+      </div>
+      <button type="submit" class="btn-primary full">Salvar Investimento</button>
+    </form>
+  </div>
+</div>
+
+<!-- Aporte -->
+<div class="overlay" id="m-aporte" onclick="closeOverlay(event,'m-aporte')">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Adicionar Aporte</h2>
+      <button class="close-btn" onclick="closeModal('m-aporte')">✕</button>
+    </div>
+    <div class="form-group">
+      <label>Valor do aporte *</label>
+      <input type="number" id="aporte-val" class="form-input" min="0.01" step="0.01" placeholder="0,00">
+    </div>
+    <input type="hidden" id="aporte-inv-id">
+    <button class="btn-primary full" onclick="confirmarAporte()">Confirmar Aporte</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+/**
+ * FinFinance Auth v3 — Supabase
+ * - Sessão via sessionStorage (não localStorage)
+ * - Verificação de assinatura real
+ * - Aceita token via query param (vindo da landing)
+ */
+
+const SUPABASE_URL = "https://glpxntvclbshupueqglf.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_Mxk806sE8KHBNCbDsvnIew_wx8KeUBv";
+const LANDING_URL = "https://finfinance-landing.vercel.app";
+const CHECKOUT_URL = `${LANDING_URL}/checkout`;
+const LOGIN_URL = `${LANDING_URL}/login`;
+
+async function supabaseSignIn(email, password) {
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
+    body: JSON.stringify({ email, password })
+  });
+  const data = await res.json();
+  if (!res.ok || !data.access_token) {
+    throw new Error('Email ou senha incorretos.');
+  }
+  return data;
+}
+
+async function supabaseSignUp(email, password, nome) {
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
+    body: JSON.stringify({ email, password, data: { nome } })
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    const msg = data?.msg || data?.error_description || data?.message || '';
+    if (msg.toLowerCase().includes('already registered') || msg.toLowerCase().includes('already exists')) {
+      throw new Error('Este email já está cadastrado. Faça login.');
+    }
+    throw new Error(msg || 'Erro ao criar conta.');
+  }
+  return data;
+}
+
+async function supabaseSignOut(accessToken) {
+  await fetch(`${SUPABASE_URL}/auth/v1/logout`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${accessToken}`
+    }
+  }).catch(() => {});
+}
+
+async function fetchSubscription(userId, accessToken) {
+  const headers = {
+    'apikey': SUPABASE_ANON_KEY,
+    'Authorization': `Bearer ${accessToken}`,
+    'Content-Type': 'application/json'
+  };
+
+  try {
+    // Tentativa 1: buscar diretamente por id (funciona se trigger sincronizou ids)
+    const r1 = await fetch(
+      `${SUPABASE_URL}/rest/v1/users?id=eq.${userId}&select=subscription_status,plan_type,subscription_expires_at`,
+      { headers }
+    );
+    if (r1.ok) {
+      const d1 = await r1.json();
+      if (d1?.length > 0) return d1[0];
+    }
+
+    // Tentativa 2: buscar por email via auth/user
+    const userRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, { headers });
+    if (!userRes.ok) return null;
+    const userInfo = await userRes.json();
+    const email = userInfo?.email;
+    if (!email) return null;
+
+    const r2 = await fetch(
+      `${SUPABASE_URL}/rest/v1/users?email=eq.${encodeURIComponent(email)}&select=subscription_status,plan_type,subscription_expires_at`,
+      { headers }
+    );
+    if (r2.ok) {
+      const d2 = await r2.json();
+      if (d2?.length > 0) return d2[0];
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+// ── Sessão via sessionStorage ─────────────────────────────────
+
+function saveSession(data) {
+  const session = {
+    access_token: data.access_token,
+    refresh_token: data.refresh_token,
+    user: data.user,
+    expires_at: Date.now() + ((data.expires_in || 3600) * 1000),
+    subscription_status: data.subscription_status || 'inactive',
+    plan_type: data.plan_type || null,
+    subscription_expires_at: data.subscription_expires_at || null,
+  };
+  sessionStorage.setItem('ff_auth_session', JSON.stringify(session));
+}
+
+function updateSessionSubscription(sub) {
+  try {
+    const raw = sessionStorage.getItem('ff_auth_session');
+    if (!raw) return;
+    const s = JSON.parse(raw);
+    s.subscription_status = sub.subscription_status;
+    s.plan_type = sub.plan_type;
+    s.subscription_expires_at = sub.subscription_expires_at;
+    sessionStorage.setItem('ff_auth_session', JSON.stringify(s));
+  } catch {}
+}
+
+function getSession() {
+  try {
+    const raw = sessionStorage.getItem('ff_auth_session');
+    if (!raw) return null;
+    const s = JSON.parse(raw);
+    if (!s.access_token) return null;
+    if (Date.now() > s.expires_at) {
+      sessionStorage.removeItem('ff_auth_session');
+      return null;
+    }
+    return s;
+  } catch {
+    return null;
+  }
+}
+
+function clearSession() {
+  sessionStorage.removeItem('ff_auth_session');
+}
+
+async function checkSubscription() {
+  const session = getSession();
+  if (!session) return { status: 'unauthenticated' };
+
+  const sub = await fetchSubscription(session.user.id, session.access_token);
+  if (!sub) {
+    return { status: session.subscription_status || 'inactive', plan: session.plan_type, cached: true };
+  }
+
+  updateSessionSubscription(sub);
+
+  return {
+    status: sub.subscription_status,
+    plan: sub.plan_type,
+    expires_at: sub.subscription_expires_at,
+    never_subscribed: sub.subscription_expires_at === null
+  };
+}
+
+// ── Token via URL (vindo da landing) ─────────────────────────
+
+async function handleTokenFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('token');
+  const refresh = params.get('refresh');
+  if (!token) return false;
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    if (!res.ok) return false;
+    const user = await res.json();
+
+    const sub = await fetchSubscription(user.id, token);
+
+    const sessionData = {
+      access_token: token,
+      refresh_token: refresh || '',
+      user,
+      expires_in: 3600,
+      subscription_status: sub?.subscription_status || 'inactive',
+      plan_type: sub?.plan_type || null,
+      subscription_expires_at: sub?.subscription_expires_at || null,
+    };
+
+    saveSession(sessionData);
+
+    // Limpar query string da URL
+    window.history.replaceState({}, document.title, window.location.pathname);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// ── UI ────────────────────────────────────────────────────────
+
+function showAuthScreen() {
+  const splash = document.getElementById('splash');
+  if (splash) splash.remove();
+  const el = document.getElementById('auth-screen');
+  if (el) el.style.display = 'flex';
+}
+
+function hideAuthScreen() {
+  const el = document.getElementById('auth-screen');
+  if (el) el.style.display = 'none';
+  const splash = document.getElementById('splash');
+  if (splash) splash.style.display = 'flex';
+}
+
+function switchAuthTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+  const activeTab = document.querySelector(`.auth-tab[data-tab="${tab}"]`);
+  if (activeTab) activeTab.classList.add('active');
+  const loginForm = document.getElementById('auth-form-login');
+  const registerForm = document.getElementById('auth-form-register');
+  if (loginForm) loginForm.style.display = tab === 'login' ? 'flex' : 'none';
+  if (registerForm) registerForm.style.display = tab === 'register' ? 'flex' : 'none';
+  setAuthError('');
+}
+
+function setAuthError(msg) {
+  const el = document.getElementById('auth-error');
+  if (!el) return;
+  el.textContent = msg || '';
+  el.style.display = msg ? 'block' : 'none';
+}
+
+function setAuthLoading(btn, loading, originalText) {
+  if (!btn) return;
+  btn.disabled = loading;
+  btn.style.opacity = loading ? '0.65' : '1';
+  btn.style.cursor = loading ? 'not-allowed' : 'pointer';
+  if (loading) {
+    btn.innerHTML = '<span class="auth-spinner"></span> Aguarde...';
+  } else {
+    btn.textContent = originalText;
+  }
+}
+
+// ── Handlers ─────────────────────────────────────────────────
+
+async function handleLogin(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btn-login');
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+
+  if (!email || !password) { setAuthError('Preencha email e senha.'); return; }
+
+  setAuthError('');
+  setAuthLoading(btn, true, 'Entrar');
+
+  try {
+    const data = await supabaseSignIn(email, password);
+    const sub = await fetchSubscription(data.user.id, data.access_token);
+    data.subscription_status = sub?.subscription_status || 'inactive';
+    data.plan_type = sub?.plan_type || null;
+    data.subscription_expires_at = sub?.subscription_expires_at || null;
+    saveSession(data);
+    hideAuthScreen();
+    window._bootFinFinance();
+  } catch (err) {
+    setAuthError(err.message);
+  } finally {
+    setAuthLoading(btn, false, 'Entrar');
+  }
+}
+
+async function handleRegister(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btn-register');
+  const nome = document.getElementById('reg-nome').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+
+  if (!nome || !email || !password) { setAuthError('Preencha todos os campos.'); return; }
+  if (password.length < 6) { setAuthError('A senha precisa ter pelo menos 6 caracteres.'); return; }
+
+  setAuthError('');
+  setAuthLoading(btn, true, 'Criar minha conta');
+
+  try {
+    const signUpData = await supabaseSignUp(email, password, nome);
+
+    // Verificar se Supabase exige confirmação de email
+    if (!signUpData?.access_token) {
+      // Email de confirmação enviado — avisar usuário, não tentar fazer login
+      setAuthLoading(btn, false, 'Criar minha conta');
+      setAuthError('');
+      // Mostrar mensagem de sucesso pedindo confirmação
+      const errEl = document.getElementById('auth-error');
+      if (errEl) {
+        errEl.style.background = 'rgba(16,185,129,0.12)';
+        errEl.style.borderColor = 'rgba(16,185,129,0.3)';
+        errEl.style.color = '#10b981';
+        errEl.textContent = '✅ Conta criada! Verifique seu email para confirmar o cadastro, depois faça login.';
+        errEl.style.display = 'block';
+      }
+      // Trocar para aba de login
+      setTimeout(() => switchAuthTab('login'), 3000);
+      return;
+    }
+
+    // Confirmação de email desativada — access_token disponível direto
+    const data = signUpData;
+    const sub = await fetchSubscription(data.user.id, data.access_token);
+    data.subscription_status = sub?.subscription_status || 'inactive';
+    data.plan_type = sub?.plan_type || null;
+    data.subscription_expires_at = sub?.subscription_expires_at || null;
+    saveSession(data);
+    window._pendingNome = nome;
+    hideAuthScreen();
+    window._bootFinFinance();
+  } catch (err) {
+    setAuthError(err.message);
+  } finally {
+    setAuthLoading(btn, false, 'Criar minha conta');
+  }
+}
+
+async function handleLogout() {
+  const session = getSession();
+  if (session?.access_token) {
+    await supabaseSignOut(session.access_token);
+  }
+  clearSession();
+  location.reload();
+}
+
+
+// ── Reset de senha ────────────────────────────────────────────
+
+async function handleForgotPassword(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btn-forgot');
+  const email = document.getElementById('forgot-email').value.trim();
+  if (!email) { setAuthError('Digite seu email.'); return; }
+
+  setAuthError('');
+  setAuthLoading(btn, true, 'Enviar link');
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/recover`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
+      body: JSON.stringify({ email })
+    });
+
+    setAuthLoading(btn, false, 'Enviar link');
+
+    const errEl = document.getElementById('auth-error');
+    if (errEl) {
+      errEl.style.background = 'rgba(16,185,129,0.12)';
+      errEl.style.borderColor = 'rgba(16,185,129,0.3)';
+      errEl.style.color = '#10b981';
+      errEl.textContent = '✅ Link de recuperação enviado! Verifique seu email.';
+      errEl.style.display = 'block';
+    }
+    // Voltar para login após 3s
+    setTimeout(() => {
+      switchAuthTab('login');
+      resetErrorStyle();
+    }, 3000);
+  } catch(err) {
+    setAuthLoading(btn, false, 'Enviar link');
+    setAuthError('Erro ao enviar email. Tente novamente.');
+  }
+}
+
+function resetErrorStyle() {
+  const el = document.getElementById('auth-error');
+  if (!el) return;
+  el.style.background = 'rgba(239,68,68,0.12)';
+  el.style.borderColor = 'rgba(239,68,68,0.3)';
+  el.style.color = '#f87171';
+  el.style.display = 'none';
+}
+
+function showForgotPassword() {
+  document.getElementById('auth-form-login').style.display = 'none';
+  document.getElementById('auth-form-register').style.display = 'none';
+  document.getElementById('auth-form-forgot').style.display = 'flex';
+  document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+  resetErrorStyle();
+}
+
+function hideForgotPassword() {
+  document.getElementById('auth-form-forgot').style.display = 'none';
+  switchAuthTab('login');
+  resetErrorStyle();
+}
+
+// ── Exposição global ──────────────────────────────────────────
+
+window.AUTH = {
+  getSession,
+  handleLogout,
+  checkSubscription,
+  fetchSubscription,
+  CHECKOUT_URL,
+  LOGIN_URL,
+};
+
+// ── Boot ──────────────────────────────────────────────────────
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const tokenFromURL = await handleTokenFromURL();
+
+  if (tokenFromURL) {
+    // Token da URL processado — bootar app
+    if (window._bootFinFinance) window._bootFinFinance();
+    return;
+  }
+
+  const session = getSession();
+  if (session) {
+    // Sessão existente — bootar app
+    if (window._bootFinFinance) window._bootFinFinance();
+  } else {
+    // Sem sessão — mostrar login (splash removido pelo showAuthScreen)
+    showAuthScreen();
+  }
+});
+
+</script>
+<script>
+/**
+ * FinFinance DB v4 — Supabase (schema real)
+ * Compatível com o schema atual do banco de dados.
+ * SUPABASE_URL e SUPABASE_ANON_KEY definidos em auth.js
+ */
+
+// ── Helpers REST ───────────────────────────────────────────────
+
+function getAuthHeaders() {
+  const session = window.AUTH?.getSession?.();
+  const token = session?.access_token || SUPABASE_ANON_KEY;
+  return {
+    'Content-Type': 'application/json',
+    'apikey': SUPABASE_ANON_KEY,
+    'Authorization': `Bearer ${token}`,
+    'Prefer': 'return=representation'
+  };
+}
+
+function getUserId() {
+  return window.AUTH?.getSession?.()?.user?.id || null;
+}
+
+async function sbGet(table, params = '') {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}${params}`, {
+    headers: getAuthHeaders()
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    console.error(`[DB] GET ${table}:`, err);
+    return [];
+  }
+  return res.json();
+}
+
+async function sbPost(table, body) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    console.error(`[DB] POST ${table}:`, err);
+    return null;
+  }
+  const data = await res.json().catch(() => []);
+  return Array.isArray(data) ? data[0] : data;
+}
+
+async function sbPatch(table, filter, body) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filter}`, {
+    method: 'PATCH',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    console.error(`[DB] PATCH ${table}:`, err);
+  }
+  return res.ok;
+}
+
+async function sbDelete(table, filter) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filter}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders()
+  });
+  return { ok: res.ok };
+}
+
+async function sbUpsert(table, body) {
+  const headers = {
+    ...getAuthHeaders(),
+    'Prefer': 'return=representation,resolution=merge-duplicates'
+  };
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    console.error(`[DB] UPSERT ${table}:`, err);
+    return null;
+  }
+  const data = await res.json().catch(() => []);
+  return Array.isArray(data) ? data[0] : data;
+}
+
+// ── Motor de análise (local) ────────────────────────────────────
+
+const METAS = {
+  "Alimentação":  { ideal: 15, max: 20, tipo: "essencial" },
+  "Moradia":      { ideal: 25, max: 35, tipo: "essencial" },
+  "Transporte":   { ideal: 10, max: 15, tipo: "essencial" },
+  "Saúde":        { ideal: 5,  max: 10, tipo: "essencial" },
+  "Educação":     { ideal: 5,  max: 10, tipo: "investimento" },
+  "Lazer":        { ideal: 10, max: 15, tipo: "variavel" },
+  "Vestuário":    { ideal: 5,  max: 10, tipo: "variavel" },
+  "Tecnologia":   { ideal: 5,  max: 8,  tipo: "variavel" },
+  "Viagem":       { ideal: 5,  max: 10, tipo: "variavel" },
+  "Delivery":     { ideal: 5,  max: 8,  tipo: "superfluo" },
+  "Assinaturas":  { ideal: 3,  max: 5,  tipo: "superfluo" },
+  "Investimento": { ideal: 20, max: 99, tipo: "investimento" },
+  "Outros":       { ideal: 5,  max: 10, tipo: "variavel" }
+};
+
+function fmt(v) {
+  if (v == null || isNaN(v)) return '0,00';
+  return parseFloat(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+async function analiseFinanceira(profile, despesasMes, contasFixas, ganhosExtras) {
+  const totalGanhosExtras = (ganhosExtras || []).reduce((t, g) => t + (g.valor || 0), 0);
+  const renda = (profile.salario || 0) + (profile.outras_rendas || 0) + totalGanhosExtras;
+
+  const cats = {};
+  (despesasMes || []).forEach(d => { cats[d.categoria] = (cats[d.categoria] || 0) + Number(d.valor); });
+
+  const contas_total = (contasFixas || []).reduce((a, b) => a + Number(b.valor), 0);
+  (contasFixas || []).forEach(c => {
+    const cat = c.categoria || 'Outros';
+    cats[cat] = (cats[cat] || 0) + Number(c.valor);
+  });
+
+  const total_gasto = (despesasMes || []).reduce((a, b) => a + Number(b.valor), 0) + contas_total;
+  const total_credito = (despesasMes || [])
+    .filter(d => d.forma_pagamento === 'credito' || d.forma_pagamento === 'parcelado')
+    .reduce((a, b) => a + Number(b.valor), 0);
+
+  let score = 100;
+  const dicas = [];
+  const pontos_fortes = [];
+  const pct_gasto = renda > 0 ? (total_gasto / renda * 100) : 0;
+  const pct_credito = renda > 0 ? (total_credito / renda * 100) : 0;
+  const saldo = renda - total_gasto;
+
+  const cats_analise = [];
+  let total_superfluo = 0;
+
+  for (const [cat, valor] of Object.entries(cats)) {
+    const pct = renda > 0 ? (valor / renda * 100) : 0;
+    const meta = METAS[cat] || { ideal: 5, max: 10, tipo: "variavel" };
+    let status = "ok";
+    if (pct > meta.max) { status = "alto"; score -= Math.min(10, (pct - meta.max) * 1.5); }
+    else if (pct > meta.ideal) { status = "atenção"; score -= Math.min(5, (pct - meta.ideal) * 0.8); }
+    if (meta.tipo === "superfluo") total_superfluo += valor;
+    cats_analise.push({ categoria: cat, valor, pct: Math.round(pct*10)/10, ideal: meta.ideal, max: meta.max, status, tipo: meta.tipo });
+  }
+
+  if (renda > 0) {
+    if (pct_gasto > 100) { dicas.push({ icone:"🚨", nivel:"critico", titulo:"Orçamento estourado!", texto:`Gastou R$ ${fmt(total_gasto-renda)} a mais.`, economia_possivel: Math.round((total_gasto-renda)*100)/100 }); score -= 25; }
+    else if (pct_gasto > 85) { dicas.push({ icone:"⚠️", nivel:"alto", titulo:"Você está no limite", texto:`Comprometeu ${Math.round(pct_gasto)}% da renda.`, economia_possivel: Math.round(total_gasto*0.15*100)/100 }); score -= 15; }
+    else if (pct_gasto < 50) { pontos_fortes.push("Você está gastando apenas " + Math.round(pct_gasto) + "% da renda — excelente!"); score += 5; }
+  }
+  if (pct_credito > 40) { dicas.push({ icone:"💳", nivel:"alto", titulo:"Uso excessivo de crédito", texto:`${Math.round(pct_credito)}% da renda no cartão.`, economia_possivel: Math.round(total_credito*0.3*100)/100 }); score -= 12; }
+  const pct_sup = renda > 0 ? (total_superfluo/renda*100) : 0;
+  if (pct_sup > 15) { dicas.push({ icone:"🛍️", nivel:"medio", titulo:"Gastos supérfluos altos", texto:`Delivery/assinaturas: ${Math.round(pct_sup)}% da renda.`, economia_possivel: Math.round(total_superfluo*0.4*100)/100 }); score -= 7; }
+  for (const c of cats_analise) {
+    if (c.status === "alto") dicas.push({ icone:"📊", nivel:"medio", titulo:`${c.categoria} acima do ideal`, texto:`${c.pct}% vs ideal ${c.ideal}%.`, economia_possivel: Math.round((c.valor-(renda*c.ideal/100))*100)/100 });
+  }
+
+  score = Math.max(0, Math.min(100, Math.round(score)));
+  let diagnostico = { icone:"🏆", texto:"Finanças exemplares!" };
+  if (score < 85) diagnostico = { icone:"✅", texto:"Finanças saudáveis." };
+  if (score < 70) diagnostico = { icone:"⚠️", texto:"Finanças precisam de atenção." };
+  if (score < 50) diagnostico = { icone:"🚨", texto:"Situação crítica." };
+
+  return {
+    score, diagnostico,
+    dicas: dicas.slice(0, 8),
+    pontos_fortes: pontos_fortes.map(p => typeof p==='string' ? {icone:'✅',texto:p} : p),
+    alertas: [],
+    cats_analise: cats_analise.sort((a,b) => b.valor-a.valor),
+    categorias: cats_analise.sort((a,b) => b.valor-a.valor),
+    resumo: { renda, total_gasto, total_credito, saldo, pct_gasto: Math.round(pct_gasto*10)/10, pct_credito: Math.round(pct_credito*10)/10, total_superfluo }
+  };
+}
+
+// ══════════════════════════════════════════════
+//  window.DB — API pública
+// ══════════════════════════════════════════════
+
+window.DB = {
+
+  init: async () => true,
+
+  // ── ensureProfile ─────────────────────────────
+
+  ensureProfile: async (nomePendente = null) => {
+    const uid = getUserId();
+    if (!uid) return true;
+    try {
+      const rows = await sbGet('profiles', `?id=eq.${uid}&limit=1`);
+      if (rows.length > 0) {
+        if (nomePendente) await sbPatch('profiles', `id=eq.${uid}`, { nome: nomePendente, updated_at: new Date().toISOString() });
+        return true;
+      }
+      // Garantir registro na tabela users (FK em cartoes, contas_fixas, etc)
+      const session = window.AUTH?.getSession?.();
+      const email = session?.user?.email || '';
+      const nome = nomePendente || session?.user?.user_metadata?.nome || 'Usuário';
+      // users.id é UUID gerado, não igual ao auth.users.id
+      // Verificar se já existe por email
+      const userRows = await sbGet('users', `?email=eq.${encodeURIComponent(email)}&limit=1`);
+      if (userRows.length === 0) {
+        await sbPost('users', { id: uid, email, nome, subscription_status: 'inactive' }).catch(() => {});
+      }
+      // Criar profile (profiles.id = auth.users.id)
+      await sbPost('profiles', {
+        id: uid, nome, salario: 0, outras_rendas: 0,
+        dia_pagamento: 5, tema: 'dark', tema_cor: 'roxo',
+        tema_modo: 'escuro', onboarding_done: 0
+      }).catch(() => {});
+      return true;
+    } catch(e) {
+      console.error('[DB] ensureProfile:', e);
+      return true; // nunca bloquear boot
+    }
+  },
+
+  // ── Profile ───────────────────────────────────
+
+  getProfile: async () => {
+    const uid = getUserId();
+    const session = window.AUTH?.getSession?.();
+    const fallback = {
+      id: 1, nome: session?.user?.user_metadata?.nome || 'Usuário',
+      salario: 0, outras_rendas: 0, dia_pagamento: 5,
+      tema: 'dark', tema_cor: 'roxo', tema_modo: 'escuro', onboarding_done: 0
+    };
+    if (!uid) return fallback;
+    try {
+      const rows = await sbGet('profiles', `?id=eq.${uid}&limit=1`);
+      if (rows.length > 0) return { ...rows[0], id: 1 };
+      return fallback;
+    } catch(e) {
+      return fallback;
+    }
+  },
+
+  updateProfile: async (data) => {
+    const uid = getUserId();
+    if (!uid) return { ok: false };
+    const { id, ...rest } = data;
+    await sbUpsert('profiles', { ...rest, id: uid, updated_at: new Date().toISOString() });
+    return { ok: true };
+  },
+
+  // ── Dashboard ─────────────────────────────────
+
+  getDashboard: async (ano, mes) => {
+    const uid = getUserId();
+    const empty = { profile:{}, renda:0, total_gasto:0, saldo:0, pct_comprometido:0, por_categoria:[], cartoes:[], contas:[], total_fixo:0, historico:[], alertas:[], total_credito:0, historico_renda:[] };
+    if (!uid) return empty;
+
+    const daysInMonth = new Date(ano, mes, 0).getDate();
+    const ini = `${ano}-${String(mes).padStart(2,'0')}-01`;
+    const fim = `${ano}-${String(mes).padStart(2,'0')}-${daysInMonth}`;
+
+    const [profileRows, ganhosExtras, cartoesList, contasList, despesasMes] = await Promise.all([
+      sbGet('profiles', `?id=eq.${uid}&limit=1`),
+      sbGet('ganhos_extras', `?user_id=eq.${uid}&order=created_at.asc`),
+      sbGet('cartoes', `?user_id=eq.${uid}&order=created_at.asc`),
+      sbGet('contas_fixas', `?user_id=eq.${uid}&order=created_at.asc`),
+      sbGet('despesas', `?user_id=eq.${uid}&data=gte.${ini}&data=lte.${fim}&order=data.desc`)
+    ]);
+
+    const session = window.AUTH?.getSession?.();
+    const fallback = { id:1, nome:'Usuário', salario:0, outras_rendas:0, dia_pagamento:5, tema:'dark', tema_cor:'roxo', tema_modo:'escuro', onboarding_done:0 };
+    const profile = profileRows.length > 0 ? { ...profileRows[0], id:1 } : fallback;
+
+    const totalGanhosExtras = ganhosExtras.reduce((t,g) => t+Number(g.valor||0), 0);
+    const renda = Number(profile.salario||0) + Number(profile.outras_rendas||0) + totalGanhosExtras;
+
+    // Por categoria
+    const cats = {};
+    despesasMes.forEach(d => { cats[d.categoria] = (cats[d.categoria]||0) + Number(d.valor); });
+    const por_categoria = Object.entries(cats).map(([cat, total]) => ({ cat, total }));
+
+    const total_fixo = contasList.reduce((a,b) => a+Number(b.valor), 0);
+    const total_gasto = despesasMes.reduce((a,b) => a+Number(b.valor), 0) + total_fixo;
+    const saldo = renda - total_gasto;
+    const pct_comprometido = renda > 0 ? Math.round((total_gasto/renda*100)*10)/10 : 0;
+
+    // Cartões — schema real: sem coluna "ativo", usa todos
+    const hoje_str = `${ano}-${String(mes).padStart(2,'0')}-01`;
+    const despesasFuturasCartao = await sbGet('despesas', `?user_id=eq.${uid}&data=gte.${hoje_str}`);
+
+    const cartoes_data = cartoesList.map(cartao => {
+      const faturaDoMes = despesasMes
+        .filter(d => Number(d.cartao_id) === Number(cartao.id))
+        .reduce((a,b) => a+Number(b.valor), 0);
+      const totalComprometido = despesasFuturasCartao
+        .filter(d => Number(d.cartao_id) === Number(cartao.id))
+        .reduce((a,b) => a+Number(b.valor), 0);
+      return {
+        ...cartao,
+        fatura: Math.round(faturaDoMes*100)/100,
+        total_comprometido: Math.round(totalComprometido*100)/100,
+        disponivel: Math.round((Number(cartao.limite_total)-totalComprometido)*100)/100,
+        pct: cartao.limite_total > 0 ? Math.round((totalComprometido/Number(cartao.limite_total)*100)*10)/10 : 0
+      };
+    });
+
+    // Histórico 6 meses
+    const MESES_BR = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    const historico = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(ano, mes-1-i, 1);
+      const y = d.getFullYear(); const m = d.getMonth()+1;
+      const days = new Date(y, m, 0).getDate();
+      const h0 = `${y}-${String(m).padStart(2,'0')}-01`;
+      const h1 = `${y}-${String(m).padStart(2,'0')}-${days}`;
+      const hist = await sbGet('despesas', `?user_id=eq.${uid}&data=gte.${h0}&data=lte.${h1}`);
+      historico.push({ label:`${MESES_BR[m-1]}/${String(y).slice(2)}`, total: Math.round(hist.reduce((a,b)=>a+Number(b.valor),0)*100)/100 });
+    }
+
+    // Alertas
+    await window.DB._gerarAlertas(uid, cartoesList, contasList, despesasMes, renda);
+    const alertas = await sbGet('alertas', `?user_id=eq.${uid}&lido=eq.0&order=prioridade.asc&limit=15`);
+
+    const total_credito = despesasMes
+      .filter(d => d.forma_pagamento==='credito' || d.forma_pagamento==='parcelado')
+      .reduce((a,b) => a+Number(b.valor), 0);
+
+    return {
+      profile,
+      renda: Math.round(renda*100)/100,
+      total_gasto: Math.round(total_gasto*100)/100,
+      saldo: Math.round(saldo*100)/100,
+      pct_comprometido,
+      por_categoria,
+      cartoes: cartoes_data,
+      contas: contasList,
+      total_fixo: Math.round(total_fixo*100)/100,
+      historico,
+      alertas,
+      total_credito: Math.round(total_credito*100)/100,
+      historico_renda: historico.map(h => ({ label: h.label, total: Number(profile.salario||0)+Number(profile.outras_rendas||0) }))
+    };
+  },
+
+  // ── Dicas ─────────────────────────────────────
+
+  getDicas: async (ano, mes) => {
+    const uid = getUserId();
+    const daysInMonth = new Date(ano, mes, 0).getDate();
+    const ini = `${ano}-${String(mes).padStart(2,'0')}-01`;
+    const fim = `${ano}-${String(mes).padStart(2,'0')}-${daysInMonth}`;
+    const [profileRows, ganhosExtras, contasList, despesasMes] = await Promise.all([
+      sbGet('profiles', `?id=eq.${uid}&limit=1`),
+      sbGet('ganhos_extras', `?user_id=eq.${uid}`),
+      sbGet('contas_fixas', `?user_id=eq.${uid}`),
+      sbGet('despesas', `?user_id=eq.${uid}&data=gte.${ini}&data=lte.${fim}`)
+    ]);
+    const profile = profileRows[0] || { salario:0, outras_rendas:0 };
+    return analiseFinanceira(profile, despesasMes, contasList, ganhosExtras);
+  },
+
+  // ── Cartões — schema real: sem "ativo" ─────────
+
+  getCartoes: async () => {
+    const uid = getUserId();
+    return sbGet('cartoes', `?user_id=eq.${uid}&order=created_at.asc`);
+  },
+
+  addCartao: async (data) => {
+    const uid = getUserId();
+    const { ativo, ...rest } = data; // remover campo que não existe
+    await sbPost('cartoes', { ...rest, user_id: uid });
+    return { ok: true };
+  },
+
+  updateCartao: async (id, data) => {
+    const uid = getUserId();
+    const { ativo, ...rest } = data;
+    await sbPatch('cartoes', `id=eq.${id}&user_id=eq.${uid}`, rest);
+    return { ok: true };
+  },
+
+  deleteCartao: async (id) => {
+    const uid = getUserId();
+    // Schema não tem "ativo" — deletar de verdade
+    await sbDelete('cartoes', `id=eq.${id}&user_id=eq.${uid}`);
+    return { ok: true };
+  },
+
+  // ── Despesas ──────────────────────────────────
+
+  getDespesas: async (ano, mes) => {
+    const uid = getUserId();
+    const daysInMonth = new Date(ano, mes, 0).getDate();
+    const ini = `${ano}-${String(mes).padStart(2,'0')}-01`;
+    const fim = `${ano}-${String(mes).padStart(2,'0')}-${daysInMonth}`;
+    const [despesas, cartoes] = await Promise.all([
+      sbGet('despesas', `?user_id=eq.${uid}&data=gte.${ini}&data=lte.${fim}&order=data.desc,id.desc`),
+      sbGet('cartoes', `?user_id=eq.${uid}`)
+    ]);
+    return despesas.map(d => {
+      const cartao = cartoes.find(c => Number(c.id) === Number(d.cartao_id));
+      return { ...d, cn: cartao?.nome||null, cc: cartao?.cor||null };
+    });
+  },
+
+  addDespesa: async (data) => {
+    const uid = getUserId();
+    const forma = data.forma_pagamento;
+    const parcelas = parseInt(data.parcelas)||1;
+    const valor = parseFloat(data.valor);
+    const dataBase = new Date(data.data);
+    const cartaoId = data.cartao_id ? parseInt(data.cartao_id) : null;
+
+    if (forma === 'parcelado' && parcelas > 1) {
+      const gid = Math.random().toString(36).substring(2,12);
+      const vparcela = Math.round((valor/parcelas)*100)/100;
+      const batch = [];
+      for (let i = 0; i < parcelas; i++) {
+        const dp = new Date(dataBase); dp.setMonth(dp.getMonth()+i);
+        batch.push({ user_id:uid, nome:`${data.nome} (${i+1}/${parcelas})`, valor:vparcela, data:dp.toISOString().split('T')[0], categoria:data.categoria, forma_pagamento:forma, cartao_id:cartaoId, parcelas_total:parcelas, parcela_atual:i+1, grupo_id:gid, observacao:data.observacao||'' });
+      }
+      await sbPost('despesas', batch);
+    } else {
+      await sbPost('despesas', { user_id:uid, nome:data.nome, valor, data:data.data, categoria:data.categoria, forma_pagamento:forma, cartao_id:cartaoId, parcelas_total:1, parcela_atual:1, grupo_id:null, observacao:data.observacao||'' });
+    }
+    return { ok: true };
+  },
+
+  deleteDespesa: async (id) => {
+    const uid = getUserId();
+    const rows = await sbGet('despesas', `?id=eq.${id}&user_id=eq.${uid}&limit=1`);
+    if (rows.length > 0 && rows[0].grupo_id) {
+      await sbDelete('despesas', `grupo_id=eq.${rows[0].grupo_id}&user_id=eq.${uid}`);
+    } else {
+      await sbDelete('despesas', `id=eq.${id}&user_id=eq.${uid}`);
+    }
+    return { ok: true };
+  },
+
+  // ── Contas Fixas — sem "ativo" no schema ──────
+
+  getContas: async () => {
+    const uid = getUserId();
+    return sbGet('contas_fixas', `?user_id=eq.${uid}&order=created_at.asc`);
+  },
+
+  addConta: async (data) => {
+    const uid = getUserId();
+    const { ativo, ...rest } = data;
+    await sbPost('contas_fixas', { ...rest, user_id: uid });
+    return { ok: true };
+  },
+
+  updateConta: async (id, data) => {
+    const uid = getUserId();
+    const { ativo, ...rest } = data;
+    await sbPatch('contas_fixas', `id=eq.${id}&user_id=eq.${uid}`, rest);
+    return { ok: true };
+  },
+
+  deleteConta: async (id) => {
+    const uid = getUserId();
+    await sbDelete('contas_fixas', `id=eq.${id}&user_id=eq.${uid}`);
+    return { ok: true };
+  },
+
+  // ── Histórico ─────────────────────────────────
+
+  getHistorico: async () => {
+    const uid = getUserId();
+    const MESES_BR = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    const hoje = new Date();
+    const result = [];
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(hoje.getFullYear(), hoje.getMonth()-i, 1);
+      const y = d.getFullYear(); const m = d.getMonth()+1;
+      const days = new Date(y, m, 0).getDate();
+      const h0 = `${y}-${String(m).padStart(2,'0')}-01`;
+      const h1 = `${y}-${String(m).padStart(2,'0')}-${days}`;
+      const hist = await sbGet('despesas', `?user_id=eq.${uid}&data=gte.${h0}&data=lte.${h1}`);
+      const totalHist = hist.reduce((a,b) => a+Number(b.valor), 0);
+      const cats = {};
+      hist.forEach(d => { cats[d.categoria] = (cats[d.categoria]||0)+Number(d.valor); });
+      result.push({ ano:y, mes:m, label:`${MESES_BR[m-1]}/${String(y).slice(2)}`, total:Math.round(totalHist*100)/100, cats:Object.fromEntries(Object.entries(cats).map(([k,v])=>[k,Math.round(v*100)/100])) });
+    }
+    return result;
+  },
+
+  // ── Alertas ───────────────────────────────────
+
+  limparAlertas: async () => {
+    const uid = getUserId();
+    await sbPatch('alertas', `user_id=eq.${uid}`, { lido: 1 });
+    return { ok: true };
+  },
+
+  _gerarAlertas: async (uid, cartoes, contas, despesasMes, renda) => {
+    if (!uid) return;
+    await sbDelete('alertas', `user_id=eq.${uid}&lido=eq.0`);
+    const batch = [];
+    const diaHoje = new Date().getDate();
+
+    for (const c of (cartoes||[])) {
+      const dias = c.dia_vencimento - diaHoje;
+      if (dias > 0 && dias <= 5) batch.push({ user_id:uid, tipo:'vencimento', mensagem:`💳 ${c.nome} vence em ${dias} dia(s)`, prioridade:1, lido:0 });
+    }
+    for (const c of (contas||[])) {
+      const dias = c.dia_vencimento - diaHoje;
+      if (dias > 0 && dias <= 3) batch.push({ user_id:uid, tipo:'conta_fixa', mensagem:`⚡ ${c.nome} vence em ${dias} dia(s) — R$ ${fmt(c.valor)}`, prioridade:1, lido:0 });
+    }
+    for (const c of (cartoes||[])) {
+      const usadoCartao = (despesasMes||[]).filter(d=>Number(d.cartao_id)===Number(c.id)).reduce((a,b)=>a+Number(b.valor),0);
+      const pct = c.limite_total > 0 ? (usadoCartao/Number(c.limite_total))*100 : 0;
+      if (pct > 80) batch.push({ user_id:uid, tipo:'limite', mensagem:`⚠️ ${c.nome}: ${Math.round(pct)}% do limite usado`, prioridade:pct>95?1:2, lido:0 });
+    }
+    const totalGasto = (despesasMes||[]).reduce((a,b)=>a+Number(b.valor),0);
+    const pctGasto = renda > 0 ? (totalGasto/renda*100) : 0;
+    if (pctGasto > 85) batch.push({ user_id:uid, tipo:'orcamento', mensagem:`🚨 Você já gastou ${Math.round(pctGasto)}% da renda do mês`, prioridade:1, lido:0 });
+
+    if (batch.length > 0) await sbPost('alertas', batch).catch(()=>{});
+  },
+
+  // ── Ganhos Extras — sem "ativo" no schema ─────
+
+  getGanhosExtras: async () => {
+    const uid = getUserId();
+    return sbGet('ganhos_extras', `?user_id=eq.${uid}&order=created_at.asc`);
+  },
+
+  addGanhoExtra: async (data) => {
+    const uid = getUserId();
+    const { ativo, ...rest } = data;
+    await sbPost('ganhos_extras', { ...rest, user_id: uid });
+    return { ok: true };
+  },
+
+  updateGanhoExtra: async (id, data) => {
+    const uid = getUserId();
+    const { ativo, ...rest } = data;
+    await sbPatch('ganhos_extras', `id=eq.${id}&user_id=eq.${uid}`, rest);
+    return { ok: true };
+  },
+
+  deleteGanhoExtra: async (id) => {
+    const uid = getUserId();
+    await sbDelete('ganhos_extras', `id=eq.${id}&user_id=eq.${uid}`);
+    return { ok: true };
+  },
+
+  getTotalGanhosExtras: async () => {
+    const uid = getUserId();
+    const ganhos = await sbGet('ganhos_extras', `?user_id=eq.${uid}`);
+    return ganhos.reduce((t,g) => t+Number(g.valor||0), 0);
+  },
+
+  // ── Investimentos — schema real ────────────────
+  // Colunas: id, user_id, local_id, nome, tipo, valor_aportado,
+  //          valor_atual, rentabilidade_info, observacao, synced_at, created_at
+
+  getInvestimentos: async () => {
+    const uid = getUserId();
+    return sbGet('investimentos', `?user_id=eq.${uid}&order=created_at.asc`);
+  },
+
+  addInvestimento: async (data) => {
+    const uid = getUserId();
+    await sbPost('investimentos', {
+      user_id: uid,
+      nome: data.nome,
+      tipo: data.tipo || '',
+      valor_aportado: data.valor_inicial || data.valor_aportado || 0,
+      valor_atual: data.valor_atual || data.valor_inicial || data.valor_aportado || 0,
+      rentabilidade_info: data.rentabilidade_info || String(data.rentabilidade || ''),
+      observacao: data.observacao || ''
+    });
+    return { ok: true };
+  },
+
+  updateInvestimento: async (id, data) => {
+    const uid = getUserId();
+    const patch = {};
+    if (data.nome !== undefined) patch.nome = data.nome;
+    if (data.tipo !== undefined) patch.tipo = data.tipo;
+    if (data.valor_aportado !== undefined) patch.valor_aportado = data.valor_aportado;
+    if (data.valor_inicial !== undefined) patch.valor_aportado = data.valor_inicial;
+    if (data.valor_atual !== undefined) patch.valor_atual = data.valor_atual;
+    if (data.rentabilidade !== undefined) patch.rentabilidade_info = String(data.rentabilidade);
+    if (data.rentabilidade_info !== undefined) patch.rentabilidade_info = data.rentabilidade_info;
+    if (data.observacao !== undefined) patch.observacao = data.observacao;
+    await sbPatch('investimentos', `id=eq.${id}&user_id=eq.${uid}`, patch);
+    return { ok: true };
+  },
+
+  deleteInvestimento: async (id) => {
+    const uid = getUserId();
+    await sbDelete('investimentos', `id=eq.${id}&user_id=eq.${uid}`);
+    return { ok: true };
+  },
+
+  addAporteInvestimento: async (id, valor) => {
+    const uid = getUserId();
+    const rows = await sbGet('investimentos', `?id=eq.${id}&user_id=eq.${uid}&limit=1`);
+    if (!rows.length) return { ok: false };
+    const inv = rows[0];
+    const novoAportado = Number(inv.valor_aportado||0) + Number(valor);
+    const novoAtual = Number(inv.valor_atual||0) + Number(valor);
+    await sbPatch('investimentos', `id=eq.${id}&user_id=eq.${uid}`, {
+      valor_aportado: novoAportado,
+      valor_atual: novoAtual,
+      synced_at: new Date().toISOString()
+    });
+    return { ok: true };
+  }
+};
+
+</script>
+<script>
+/**
+ * FinFinance — subscription-blocker.js
+ * Modal de bloqueio por assinatura
+ */
+(function () {
+  const CHECKOUT_URL = 'https://finfinance-landing.vercel.app/checkout';
+
+  const STYLES = `
+    #ff-blocker-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      background: rgba(0,0,0,0.78);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    #ff-blocker-overlay.active { display: flex; }
+    #ff-blocker-card {
+      background: linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);
+      border: 1px solid rgba(139,92,246,0.3);
+      border-radius: 24px;
+      padding: 2.5rem 2rem;
+      max-width: 420px;
+      width: 100%;
+      position: relative;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.6), 0 0 40px rgba(139,92,246,0.1);
+      animation: ff-slide-up 0.25s ease;
+      text-align: center;
+    }
+    @keyframes ff-slide-up {
+      from { transform: translateY(20px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+    #ff-blocker-close {
+      position: absolute; top: 1rem; right: 1rem;
+      background: rgba(255,255,255,0.1); border: none;
+      color: #94a3b8; width: 32px; height: 32px;
+      border-radius: 50%; font-size: 16px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .2s; line-height: 1;
+    }
+    #ff-blocker-close:hover { background: rgba(255,255,255,0.2); color: #fff; }
+    #ff-blocker-icon {
+      width: 68px; height: 68px;
+      background: linear-gradient(135deg,#7c3aed,#4f46e5);
+      border-radius: 20px; font-size: 30px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.5rem;
+    }
+    #ff-blocker-title {
+      font-size: 1.45rem; font-weight: 800;
+      color: #f1f5f9; margin: 0 0 0.75rem; line-height: 1.3;
+    }
+    #ff-blocker-text {
+      font-size: 0.95rem; color: #94a3b8;
+      margin: 0 0 2rem; line-height: 1.65;
+    }
+    #ff-blocker-btn {
+      display: flex; align-items: center; justify-content: center;
+      gap: 0.5rem; width: 100%;
+      padding: 0.95rem 1.5rem;
+      background: linear-gradient(135deg,#10b981,#059669);
+      color: #fff; font-size: 1rem; font-weight: 700;
+      border: none; border-radius: 14px; cursor: pointer;
+      transition: all .2s; text-decoration: none;
+      box-shadow: 0 4px 20px rgba(16,185,129,0.35);
+    }
+    #ff-blocker-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 28px rgba(16,185,129,0.5);
+    }
+    body.ff-blocked > *:not(#ff-blocker-overlay):not(style):not(script) {
+      pointer-events: none !important;
+      user-select: none !important;
+    }
+    body.ff-blocked #app,
+    body.ff-blocked #onboarding,
+    body.ff-blocked .bottom-nav,
+    body.ff-blocked .main,
+    body.ff-blocked header,
+    body.ff-blocked nav {
+      filter: blur(3px);
+      opacity: 0.4;
+    }
+    #ff-blocker-overlay {
+      z-index: 999999 !important;
+    }
+  `;
+
+  function createModal() {
+    if (document.getElementById('ff-blocker-overlay')) return;
+    const style = document.createElement('style');
+    style.textContent = STYLES;
+    document.head.appendChild(style);
+
+    const overlay = document.createElement('div');
+    overlay.id = 'ff-blocker-overlay';
+    overlay.innerHTML = `
+      <div id="ff-blocker-card">
+        <button id="ff-blocker-close" title="Fechar">✕</button>
+        <div id="ff-blocker-icon">🔒</div>
+        <h2 id="ff-blocker-title">Sua assinatura está inativa</h2>
+        <p id="ff-blocker-text">Renove sua assinatura para continuar usando o FinFinance.</p>
+        <a id="ff-blocker-btn" href="${CHECKOUT_URL}" target="_blank">💳 Renovar assinatura</a>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    document.getElementById('ff-blocker-close').addEventListener('click', () => {
+      // Fechar modal e voltar para o login
+      overlay.classList.remove('active');
+      document.body.classList.remove('ff-blocked');
+      // Fazer logout e mostrar tela de login
+      if (window.AUTH?.handleLogout) {
+        window.AUTH.handleLogout();
+      } else {
+        sessionStorage.removeItem('ff_auth_session');
+        location.reload();
+      }
+    });
+
+    // reabrir modal se tentar interagir com conteúdo bloqueado (sem usar X)
+    document.addEventListener('click', (e) => {
+      if (
+        document.body.classList.contains('ff-blocked') &&
+        !overlay.contains(e.target) &&
+        !overlay.classList.contains('active')
+      ) {
+        overlay.classList.add('active');
+      }
+    }, true);
+  }
+
+  function showBlocker({ neverSubscribed = false } = {}) {
+    const overlay = document.getElementById('ff-blocker-overlay');
+    if (!overlay) return;
+    const title = document.getElementById('ff-blocker-title');
+    const text  = document.getElementById('ff-blocker-text');
+    const btn   = document.getElementById('ff-blocker-btn');
+
+    if (neverSubscribed) {
+      title.textContent = 'Você ainda não possui assinatura';
+      text.textContent  = 'Assine agora para desbloquear todos os recursos do FinFinance.';
+      btn.innerHTML = '🚀 Assinar agora';
+    } else {
+      title.textContent = 'Sua assinatura está inativa';
+      text.textContent  = 'Renove sua assinatura para continuar usando o FinFinance.';
+      btn.innerHTML = '💳 Renovar assinatura';
+    }
+
+    overlay.classList.add('active');
+  }
+
+  function applySubscriptionBlock(sub) {
+    createModal();
+    if (!sub || sub.status !== 'active') {
+      document.body.classList.add('ff-blocked');
+      showBlocker({ neverSubscribed: sub?.never_subscribed === true || !sub?.expires_at });
+      return true;
+    }
+    document.body.classList.remove('ff-blocked');
+    return false;
+  }
+
+  window.SubscriptionBlocker = { applySubscriptionBlock, showBlocker, createModal };
+})();
+
+</script>
+<script>
+/**
+ * FinFinance — plan-badge.js
+ * Badge de plano no header
+ */
+(function () {
+  const STYLES = `
+    #ff-plan-badge {
+      display: inline-flex; align-items: center;
+      font-size: 0.6rem; font-weight: 800;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 2px 7px; border-radius: 5px;
+      margin-left: 6px; vertical-align: middle;
+      border: 1px solid transparent;
+    }
+    #ff-plan-badge.badge-mensal  { background: rgba(16,185,129,0.15); color: #10b981; border-color: rgba(16,185,129,0.3); }
+    #ff-plan-badge.badge-anual   { background: rgba(59,130,246,0.15); color: #60a5fa; border-color: rgba(59,130,246,0.3); }
+    #ff-plan-badge.badge-fundador{ background: rgba(245,158,11,0.15); color: #f59e0b; border-color: rgba(245,158,11,0.3); }
+    #ff-plan-badge.badge-inativo { background: rgba(239,68,68,0.15);  color: #f87171; border-color: rgba(239,68,68,0.3);  }
+  `;
+
+  const MAP = {
+    mensal:   { label: 'MENSAL',  cls: 'badge-mensal' },
+    anual:    { label: 'PRO',     cls: 'badge-anual' },
+    annual:   { label: 'PRO',     cls: 'badge-anual' },
+    fundador: { label: 'FUNDADOR',cls: 'badge-fundador' },
+  };
+
+  function injectStyles() {
+    if (document.getElementById('ff-badge-styles')) return;
+    const s = document.createElement('style');
+    s.id = 'ff-badge-styles';
+    s.textContent = STYLES;
+    document.head.appendChild(s);
+  }
+
+  function renderBadge(plan, status) {
+    injectStyles();
+    const el = document.getElementById('ff-plan-badge');
+    if (!el) return;
+    el.className = '';
+    el.removeAttribute('class');
+
+    if (status !== 'active') {
+      el.textContent = 'INATIVO';
+      el.className = 'badge-inativo';
+      el.id = 'ff-plan-badge';
+      return;
+    }
+
+    const badge = MAP[plan?.toLowerCase()] || { label: 'ATIVO', cls: 'badge-mensal' };
+    el.textContent = badge.label;
+    el.className = badge.cls;
+    el.id = 'ff-plan-badge';
+  }
+
+  function updateBadgeFromSession() {
+    const session = window.AUTH?.getSession?.();
+    if (!session) return;
+    renderBadge(session.plan_type, session.subscription_status);
+  }
+
+  window.PlanBadge = { renderBadge, updateBadgeFromSession };
+})();
+
+</script>
+<script>
+/**
+ * FinFinance — Frontend JS
+ * State · API · Renders · Charts · Dicas · Animations
+ */
+
+// ══════════ STATE ══════════
+const S = {
+  ano: new Date().getFullYear(),
+  mes: new Date().getMonth() + 1,
+  dash: null,
+  despesas: [],
+  cartoes: [],
+  tema: sessionStorage.getItem('ff-tema') || 'dark'
+};
+
+let CHARTS = { cat: null, evo: null, hist: null };
+let despesasRaw = [];
+
+const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+               'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const MESES_BR = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+const CAT_ICONS = {
+  'Alimentação':'🍔','Moradia':'🏠','Transporte':'🚗','Saúde':'💊',
+  'Educação':'📚','Lazer':'🎮','Vestuário':'👗','Tecnologia':'💻',
+  'Viagem':'✈️','Delivery':'🛵','Assinaturas':'📱','Investimento':'📈','Outros':'📦'
+};
+
+const CAT_COLORS = {
+  'Alimentação':'rgba(251,146,60,0.18)','Moradia':'rgba(139,92,246,0.18)',
+  'Transporte':'rgba(96,165,250,0.18)','Saúde':'rgba(248,113,113,0.18)',
+  'Educação':'rgba(52,211,153,0.18)','Lazer':'rgba(252,211,77,0.18)',
+  'Vestuário':'rgba(236,72,153,0.18)','Tecnologia':'rgba(14,165,233,0.18)',
+  'Viagem':'rgba(6,182,212,0.18)','Delivery':'rgba(234,179,8,0.18)',
+  'Assinaturas':'rgba(167,139,250,0.18)','Investimento':'rgba(74,222,128,0.18)',
+  'Outros':'rgba(148,163,184,0.18)'
+};
+
+// ══════════ SPLASH + BOOT ══════════
+// Chamado pelo auth.js após login/cadastro ou ao detectar sessão existente
+window._bootFinFinance = async function() {
+  applyTema(S.tema);
+  try {
+    // 1. Verificar sessão
+    const session = window.AUTH.getSession();
+    if (!session?.user?.id) {
+      hideSplash();
+      showAuthScreen();
+      return;
+    }
+
+    // 2. Verificar assinatura
+    const sub = await window.AUTH.checkSubscription();
+    const blocked = window.SubscriptionBlocker?.applySubscriptionBlock(sub);
+    window.PlanBadge?.renderBadge(sub?.plan, sub?.status);
+    if (blocked) { hideSplash(); return; }
+
+    // 3. Garantir profile no Supabase (nunca bloqueia)
+    await DB.ensureProfile(window._pendingNome || null);
+    if (window._pendingNome) delete window._pendingNome;
+
+    // 4. Carregar profile e abrir app
+    const p = await DB.getProfile();
+    hideSplash();
+
+    if (!p.onboarding_done || !p.salario) {
+      showOnboarding();
+    } else {
+      bootApp(p);
+    }
+  } catch (err) {
+    console.error('[Boot]', err);
+    hideSplash();
+    showAuthScreen();
+    setAuthError('Erro ao iniciar. Tente novamente.');
+  }
+};
+// Boot é 100% controlado pelo auth.js — sem DOMContentLoaded aqui
+
+function animateSplash() {
+  const msgs = ['Carregando dados...', 'Preparando análises...', 'Quase pronto...'];
+  let i = 0;
+  const el = document.getElementById('splash-status');
+  setInterval(() => { if (el && i < msgs.length) { el.textContent = msgs[i++]; } }, 800);
+}
+
+function hideSplash() {
+  const s = document.getElementById('splash');
+  if (!s) return;
+  s.classList.add('out');
+  setTimeout(() => { const el = document.getElementById('splash'); if (el) el.remove(); }, 700);
+}
+
+function showOnboarding() {
+  document.getElementById('onboarding').classList.remove('hidden');
+}
+
+function bootApp(p) {
+  document.getElementById('onboarding')?.classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  updateMonthLabel();
+  // Aplicar tema salvo
+  const modo = p.tema_modo || 'escuro';
+  S.tema = modo === 'escuro' ? 'dark' : 'light';
+  applyTema(S.tema);
+  loadDashboard();
+  // loadCartoes é alias seguro (pode não estar na view de cartões ainda)
+}
+
+async function loadCartoes() {
+  S.cartoes = await api('/api/cartoes');
+}
+
+// Onboarding steps
+function nextOnb(step) {
+  document.querySelector('.onb-step.active')?.classList.remove('active');
+  document.getElementById(`onb-${step}`)?.classList.add('active');
+}
+
+async function finishOnb() {
+  const nome = document.getElementById('onb-nome')?.value || 'Usuário';
+  const salario = parseFloat(document.getElementById('onb-salario')?.value || 0);
+  await api('/api/profile', 'POST', { nome, salario, outras_rendas: 0, dia_pagamento: 5, tema: S.tema });
+  document.getElementById('onboarding').classList.add('hidden');
+  const p = await api('/api/profile');
+  bootApp(p);
+}
+
+// ══════════ TEMA ══════════
+async function toggleTema() {
+  const profile = await api('/api/profile');
+  const modoAtual = profile.tema_modo || (S.tema === 'dark' ? 'escuro' : 'claro');
+  const novoModo = modoAtual === 'escuro' ? 'claro' : 'escuro';
+  S.tema = novoModo === 'escuro' ? 'dark' : 'light';
+  sessionStorage.setItem('ff-tema', S.tema);
+  await api('/api/profile', 'POST', { ...profile, tema_modo: novoModo });
+  applyTema(S.tema);
+  // Atualizar configs se estiver aberta
+  const configView = document.getElementById('v-config');
+  if (configView?.classList.contains('active')) loadConfig();
+}
+
+function applyTema(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  const icon = document.getElementById('tema-icon');
+  if (icon) icon.textContent = t === 'dark' ? '☀' : '🌙';
+  S.tema = t;
+  if (S.dash) setTimeout(() => drawCharts(S.dash), 80);
+}
+
+// ══════════ NAV ══════════
+function goto(view, el) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+  const vEl = document.getElementById('v-' + view);
+  if (vEl) vEl.classList.add('active');
+  if (el) el.classList.add('active');
+  else {
+    const found = document.querySelector(`[data-view="${view}"]`);
+    if (found) found.classList.add('active');
+  }
+  closeAlerts();
+  switch (view) {
+    case 'dashboard': loadDashboard(); break;
+    case 'dicas': loadDicas(); break;
+    case 'cartoes': loadCartoesView(); break;
+    case 'despesas': loadDespesasView(); break;
+    case 'gastos': loadGastosView(); break;
+    case 'contas': loadContasView(); break;
+    case 'historico': loadHistorico(); break;
+    case 'perfil': loadPerfil(); break;
+    case 'investimentos': loadInvestimentos(); break;
+  }
+  return false;
+}
+
+function changeMonth(d) {
+  S.mes += d;
+  if (S.mes > 12) { S.mes = 1; S.ano++; }
+  if (S.mes < 1) { S.mes = 12; S.ano--; }
+  updateMonthLabel();
+  const av = document.querySelector('.nav-link.active');
+  const view = av?.dataset?.view || 'dashboard';
+  goto(view, av);
+}
+
+function updateMonthLabel() {
+  const el = document.getElementById('month-lbl');
+  if (el) el.textContent = `${MESES[S.mes - 1]} ${S.ano}`;
+}
+
+// ══════════ CACHE ══════════
+const _cache = {};
+function cacheGet(key) {
+  if (_cache[key]) return _cache[key];
+  try {
+    const raw = sessionStorage.getItem('ff_cache_' + key);
+    if (raw) { const p = JSON.parse(raw); if (Date.now() < p.exp) return p.data; }
+  } catch(e) {}
+  return null;
+}
+function cacheSet(key, data, ttlMs = 30000) {
+  _cache[key] = data;
+  try { sessionStorage.setItem('ff_cache_' + key, JSON.stringify({ data, exp: Date.now() + ttlMs })); } catch(e) {}
+}
+function cacheClear(prefix) {
+  Object.keys(_cache).forEach(k => { if (k.startsWith(prefix)) delete _cache[k]; });
+  try {
+    Object.keys(sessionStorage).forEach(k => { if (k.startsWith('ff_cache_' + prefix)) sessionStorage.removeItem(k); });
+  } catch(e) {}
+}
+
+// ══════════ API ══════════
+async function api(url, method = 'GET', body = null) {
+  if (method !== 'GET') {
+    if (url.includes('/api/despesas'))     cacheClear('despesas');
+    if (url.includes('/api/cartoes'))      cacheClear('cartoes');
+    if (url.includes('/api/contas-fixas')) cacheClear('contas');
+    if (url.includes('/api/ganhos-extras'))cacheClear('ganhos');
+    if (url.includes('/api/investimentos'))cacheClear('inv');
+    if (url.includes('/api/profile'))      cacheClear('profile');
+    cacheClear('dashboard');
+  }
+  try {
+    // Dashboard
+    if (url.includes('/api/dashboard')) {
+      const params = new URLSearchParams(url.split('?')[1]);
+      const ano = parseInt(params.get('ano')); const mes = parseInt(params.get('mes'));
+      const ck = `dashboard_${ano}_${mes}`;
+      const cached = cacheGet(ck);
+      if (cached) { DB.getDashboard(ano, mes).then(d => cacheSet(ck, d)); return cached; }
+      const d = await DB.getDashboard(ano, mes); cacheSet(ck, d); return d;
+    }
+
+    // Dicas
+    if (url.includes('/api/dicas')) {
+      const params = new URLSearchParams(url.split('?')[1]);
+      const ano = parseInt(params.get('ano')); const mes = parseInt(params.get('mes'));
+      const ck = `dicas_${ano}_${mes}`;
+      const cached = cacheGet(ck);
+      if (cached) { DB.getDicas(ano, mes).then(d => cacheSet(ck, d, 60000)); return cached; }
+      const d = await DB.getDicas(ano, mes); cacheSet(ck, d, 60000); return d;
+    }
+
+    // Profile
+    if (url.includes('/api/profile')) {
+      if (method === 'POST') { return await DB.updateProfile(body); }
+      const cached = cacheGet('profile');
+      if (cached) { DB.getProfile().then(d => cacheSet('profile', d)); return cached; }
+      const p = await DB.getProfile(); cacheSet('profile', p); return p;
+    }
+
+    // Cartões
+    if (url.includes('/api/cartoes')) {
+      if (method === 'POST') { return await DB.addCartao(body); }
+      if (method === 'PUT')  { return await DB.updateCartao(parseInt(url.split('/').pop()), body); }
+      if (method === 'DELETE') { return await DB.deleteCartao(parseInt(url.split('/').pop())); }
+      const cached = cacheGet('cartoes');
+      if (cached) { DB.getCartoes().then(d => cacheSet('cartoes', d)); return cached; }
+      const d = await DB.getCartoes(); cacheSet('cartoes', d); return d;
+    }
+
+    // Despesas
+    if (url.includes('/api/despesas')) {
+      if (method === 'POST') { return await DB.addDespesa(body); }
+      if (method === 'DELETE') { return await DB.deleteDespesa(parseInt(url.split('/').pop())); }
+      const params = new URLSearchParams(url.split('?')[1]);
+      const ano = parseInt(params.get('ano')); const mes = parseInt(params.get('mes'));
+      const ck = `despesas_${ano}_${mes}`;
+      const cached = cacheGet(ck);
+      if (cached) { DB.getDespesas(ano, mes).then(d => cacheSet(ck, d)); return cached; }
+      const d = await DB.getDespesas(ano, mes); cacheSet(ck, d); return d;
+    }
+
+    // Contas Fixas
+    if (url.includes('/api/contas-fixas')) {
+      if (method === 'POST') { return await DB.addConta(body); }
+      if (method === 'PUT')  { return await DB.updateConta(parseInt(url.split('/').pop()), body); }
+      if (method === 'DELETE') { return await DB.deleteConta(parseInt(url.split('/').pop())); }
+      const cached = cacheGet('contas');
+      if (cached) { DB.getContas().then(d => cacheSet('contas', d)); return cached; }
+      const d = await DB.getContas(); cacheSet('contas', d); return d;
+    }
+
+    // Histórico
+    if (url.includes('/api/historico')) {
+      const cached = cacheGet('historico');
+      if (cached) { DB.getHistorico().then(d => cacheSet('historico', d, 120000)); return cached; }
+      const d = await DB.getHistorico(); cacheSet('historico', d, 120000); return d;
+    }
+    
+    // Alertas
+    if (url.includes('/api/alertas/limpar')) {
+      return await DB.limparAlertas();
+    }
+    
+    // Investimentos
+    if (url.includes('/api/investimentos')) {
+      if (url.includes('/aporte')) {
+        const id = parseInt(url.split('/').slice(-2)[0]);
+        return await DB.addAporteInvestimento(id, body.valor);
+      }
+      if (method === 'POST') return await DB.addInvestimento(body);
+      if (method === 'PUT') {
+        const id = parseInt(url.split('/').pop());
+        return await DB.updateInvestimento(id, body);
+      }
+      if (method === 'DELETE') {
+        const id = parseInt(url.split('/').pop());
+        return await DB.deleteInvestimento(id);
+      }
+      return await DB.getInvestimentos();
+    }
+    
+    return {};
+  } catch (e) {
+    console.error('API error', e);
+    return {};
+  }
+}
+
+// ══════════ DASHBOARD ══════════
+async function loadDashboard() {
+  const d = await api(`/api/dashboard?ano=${S.ano}&mes=${S.mes}`);
+  S.dash = d;
+  const p = d.profile || {};
+  const nome = p.nome || 'Usuário';
+
+  // Topbar
+  setEl('user-av', nome.charAt(0).toUpperCase());
+  setEl('user-nm', nome.split(' ')[0]);
+
+  // Atualizar badge de plano
+  const _sess = window.AUTH?.getSession?.();
+  window.PlanBadge?.renderBadge(_sess?.plan_type, _sess?.subscription_status);
+
+  // KPIs
+  setEl('k-renda', 'R$ ' + fmt(d.renda));
+  setEl('k-gasto', 'R$ ' + fmt(d.total_gasto));
+  setEl('k-saldo', 'R$ ' + fmt(d.saldo));
+  setEl('k-cred', 'R$ ' + fmt(d.total_credito));
+  setEl('k-renda-sub', `Salário + R$ ${fmt(p.outras_rendas)}`);
+  setEl('k-gasto-sub', `${d.por_categoria?.length || 0} categorias`);
+  setEl('k-cred-sub', `${d.cartoes?.length || 0} cartão(ões)`);
+
+  const sEl = document.getElementById('k-saldo');
+  if (sEl) sEl.style.color = d.saldo < 0 ? 'var(--v-red)' : 'var(--v-green)';
+
+  // Progress
+  const pct = Math.min(d.pct_comprometido || 0, 100);
+  const fill = document.getElementById('prog-fill');
+  if (fill) {
+    fill.style.width = pct + '%';
+    fill.classList.toggle('crit', d.pct_comprometido > 85);
+  }
+  setEl('prog-pct', (d.pct_comprometido || 0) + '%');
+  setEl('prog-foot', d.renda > 0
+    ? `R$ ${fmt(d.total_gasto)} de R$ ${fmt(d.renda)} comprometidos`
+    : 'Configure sua renda no Perfil');
+
+  // Score (from dicas)
+  loadScorePreview();
+  renderDashCards(d.cartoes || []);
+  renderDashContas(d.contas || [], d.total_fixo || 0);
+  renderDashTxs();
+  renderAlerts(d.alertas || []);
+  drawCharts(d);
+}
+
+async function loadScorePreview() {
+  const dicas = await api(`/api/dicas?ano=${S.ano}&mes=${S.mes}`);
+  const score = dicas.score || 0;
+  setEl('score-num', score);
+  setEl('score-desc', dicas.diagnostico?.texto?.substring(0, 60) + '...' || '');
+  setEl('nav-score-badge', score);
+  // Arc animation
+  const arc = document.getElementById('score-arc');
+  if (arc) {
+    const circ = 213.6;
+    arc.style.strokeDashoffset = circ - (circ * score / 100);
+  }
+}
+
+function renderDashCards(cartoes) {
+  const el = document.getElementById('dash-cards');
+  if (!el) return;
+  if (!cartoes.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-ico">💳</div><p>Nenhum cartão</p></div>';
+    return;
+  }
+  el.innerHTML = cartoes.map(c => {
+    const comprometido = c.total_comprometido || c.fatura || 0;
+    const disponivel = c.disponivel != null ? c.disponivel : (c.limite_total - comprometido);
+    return `
+    <div class="dash-card-row">
+      <div class="dcr-dot" style="background:${c.cor}"></div>
+      <div class="dcr-name">${c.nome}</div>
+      <div class="dcr-pct">${c.pct}%</div>
+      <div style="text-align:right">
+        <div class="dcr-val">R$ ${fmt(comprometido)}</div>
+        <div style="font-size:0.68rem;color:var(--v-green)">disp. R$ ${fmt(disponivel)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderDashContas(contas, total) {
+  const el = document.getElementById('dash-contas');
+  const tot = document.getElementById('dash-contas-total');
+  if (!el) return;
+  const hoje = new Date().getDate();
+  if (!contas.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-ico">📋</div><p>Nenhuma conta fixa</p></div>';
+    if (tot) tot.innerHTML = '';
+    return;
+  }
+  el.innerHTML = contas.map(c => {
+    const dias = c.dia_vencimento - hoje;
+    const urg = dias >= 0 && dias <= 3;
+    return `
+    <div class="conta-row">
+      <div class="cr-info">
+        <div class="cr-name">${c.nome} ${urg ? '⚠️' : ''}</div>
+        <div class="cr-day">Dia ${c.dia_vencimento} · ${c.categoria}</div>
+      </div>
+      <div class="cr-val" style="${urg ? 'color:var(--v-orange)' : ''}">R$ ${fmt(c.valor)}</div>
+    </div>`;
+  }).join('');
+  if (tot) tot.innerHTML = `Total mensal: <strong>R$ ${fmt(total)}</strong>`;
+}
+
+async function renderDashTxs() {
+  const desp = await api(`/api/despesas?ano=${S.ano}&mes=${S.mes}`);
+  const el = document.getElementById('dash-txs');
+  if (!el) return;
+  const recent = desp.slice(0, 6);
+  if (!recent.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-ico">📊</div><p>Nenhuma transação este mês</p></div>';
+    return;
+  }
+  el.innerHTML = recent.map(d => {
+    const ic = CAT_ICONS[d.categoria] || '📦';
+    const bg = CAT_COLORS[d.categoria] || 'rgba(139,92,246,0.1)';
+    const dt = new Date(d.data + 'T00:00:00').toLocaleDateString('pt-BR', { day:'2-digit', month:'short' });
+    return `
+    <div class="tx-row">
+      <div class="tx-ico" style="background:${bg}">${ic}</div>
+      <div class="tx-inf">
+        <div class="tx-nm">${d.nome}</div>
+        <div class="tx-meta">${d.categoria} · ${formaBadge(d.forma_pagamento, false)}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="tx-amt">−R$ ${fmt(d.valor)}</div>
+        <div class="tx-dt">${dt}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════ CHARTS ══════════
+function drawCharts(d) {
+  if (!d) return;
+  const dark = S.tema === 'dark';
+  const gc = dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+  const tc = dark ? '#9490B8' : '#5B4F80';
+  Chart.defaults.color = tc;
+  Chart.defaults.font.family = "'Outfit', sans-serif";
+
+  // DONUT — categorias
+  const catCanvas = document.getElementById('ch-cat');
+  if (catCanvas && d.por_categoria?.length) {
+    if (CHARTS.cat) CHARTS.cat.destroy();
+    const colors = palette(d.por_categoria.length);
+    CHARTS.cat = new Chart(catCanvas, {
+      type: 'doughnut',
+      data: {
+        labels: d.por_categoria.map(c => c.cat),
+        datasets: [{
+          data: d.por_categoria.map(c => c.total),
+          backgroundColor: colors,
+          borderColor: dark ? '#16161f' : '#fff',
+          borderWidth: 3, hoverOffset: 6
+        }]
+      },
+      options: {
+        cutout: '72%',
+        plugins: {
+          legend: { position: 'right', labels: { padding: 12, boxWidth: 10, font: { size: 11 } } },
+          tooltip: { callbacks: { label: ctx => ` R$ ${fmt(ctx.raw)}` } }
+        },
+        animation: { duration: 700 }
+      }
+    });
+  }
+
+  // BARS — evolução (ganhos verde, gastos vermelho)
+  const evoCanvas = document.getElementById('ch-evo');
+  if (evoCanvas && d.historico?.length) {
+    if (CHARTS.evo) CHARTS.evo.destroy();
+    const labels = d.historico.map(h => h.label);
+    const gastos = d.historico.map(h => h.total);
+    const renda = (d.historico_renda || []).map(h => h.total);
+    const rendaVal = d.renda || 0;
+    const ganhos = labels.map(() => rendaVal);
+    
+    CHARTS.evo = new Chart(evoCanvas, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Ganhos',
+            data: ganhos,
+            backgroundColor: 'rgba(52,211,153,0.55)',
+            borderColor: 'rgba(52,211,153,0.9)',
+            borderWidth: 1.5,
+            borderRadius: 6,
+            borderSkipped: false
+          },
+          {
+            label: 'Gastos',
+            data: gastos,
+            backgroundColor: gastos.map((_, i) =>
+              i === gastos.length - 1 ? 'rgba(248,113,113,0.9)' : 'rgba(248,113,113,0.5)'),
+            borderColor: 'rgba(248,113,113,0.9)',
+            borderWidth: 1.5,
+            borderRadius: 6,
+            borderSkipped: false
+          }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+          y: { grid: { color: gc }, ticks: { callback: v => 'R$ ' + fmt(v), font: { size: 10 } } }
+        },
+        plugins: {
+          legend: { display: true, labels: { boxWidth: 10, font: { size: 11 } } },
+          tooltip: { callbacks: { label: c => ` ${c.dataset.label}: R$ ${fmt(c.raw)}` } }
+        },
+        animation: { duration: 500 }
+      }
+    });
+  }
+}
+
+// ══════════ DICAS INTELIGENTES ══════════
+async function loadDicas() {
+  const el = document.getElementById('v-dicas');
+  if (!el) return;
+
+  // Show loading
+  document.getElementById('diag-score-big').textContent = '...';
+
+  const data = await api(`/api/dicas?ano=${S.ano}&mes=${S.mes}`);
+  renderDiagnostico(data);
+  renderResumoCats(data.cats_analise || []);
+  renderDicasList(data.dicas || []);
+  renderPontosList(data.pontos_fortes || []);
+  renderMetasTable(data.cats_analise || []);
+
+  // Economia potencial
+  const eco = data.resumo?.total_economia_possivel || 0;
+  const ecoCard = document.getElementById('economia-card');
+  if (ecoCard && eco > 0) {
+    ecoCard.style.display = 'flex';
+    setEl('eco-val', 'R$ ' + fmt(eco));
+  }
+
+  // Update score badge
+  setEl('nav-score-badge', data.score || 0);
+}
+
+async function reloadDicas() {
+  await loadDicas();
+  toast('Análise atualizada!', 'ok');
+}
+
+function renderDiagnostico(data) {
+  const score = data.score || 0;
+  const diag = data.diagnostico || {};
+
+  setEl('diag-score-big', score);
+  setEl('diag-nivel', diag.texto?.split('!')[0] || '');
+  setEl('diag-emoji', diag.emoji || '🤔');
+  setEl('diag-texto', diag.texto || '');
+
+  // Bar
+  const bar = document.getElementById('diag-bar-fill');
+  if (bar) {
+    setTimeout(() => { bar.style.width = score + '%'; }, 100);
+  }
+
+  // Color score by value
+  const scoreEl = document.getElementById('diag-score-big');
+  if (scoreEl) {
+    if (score >= 80) scoreEl.style.background = 'linear-gradient(135deg, #34D399, #A78BFA)';
+    else if (score >= 60) scoreEl.style.background = 'linear-gradient(135deg, #FCD34D, #8B5CF6)';
+    else scoreEl.style.background = 'linear-gradient(135deg, #F87171, #FB923C)';
+    scoreEl.style.webkitBackgroundClip = 'text';
+    scoreEl.style.webkitTextFillColor = 'transparent';
+    scoreEl.style.backgroundClip = 'text';
+  }
+}
+
+function renderResumoCats(cats) {
+  const el = document.getElementById('resumo-cats');
+  if (!el) return;
+  if (!cats.length) { el.innerHTML = ''; return; }
+  el.innerHTML = cats.slice(0, 8).map(c => {
+    const st = c.status === 'ok' ? '✅' : c.status === 'alto' ? '🔴' : '🟡';
+    const color = c.status === 'ok' ? '#34D399' : c.status === 'alto' ? '#F87171' : '#FCD34D';
+    return `
+    <div class="rcat-chip">
+      <div class="rcat-dot" style="background:${color}"></div>
+      <span class="rcat-name">${c.categoria}</span>
+      <span class="rcat-pct">${c.pct}%</span>
+      <span class="rcat-status">${st}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderDicasList(dicas) {
+  const el = document.getElementById('dicas-list');
+  if (!el) return;
+  if (!dicas.length) {
+    el.innerHTML = `<div class="ponto-card">🎉 Nenhuma melhoria crítica identificada este mês!</div>`;
+    return;
+  }
+  el.innerHTML = dicas.map(d => `
+    <div class="dica-card ${d.nivel}">
+      <div class="dica-head">
+        <span class="dica-ico">${d.icone}</span>
+        <span class="dica-title">${d.titulo}</span>
+      </div>
+      <div class="dica-txt">${d.texto}</div>
+      ${d.economia_possivel > 0
+        ? `<div class="dica-eco">💚 Economia potencial: R$ ${fmt(d.economia_possivel)}/mês</div>`
+        : ''}
+    </div>`).join('');
+}
+
+function renderPontosList(pontos) {
+  const el = document.getElementById('pontos-list');
+  if (!el) return;
+  if (!pontos || !pontos.length) {
+    el.innerHTML = `<div class="ponto-card" style="color:var(--txt3)">Continue registrando suas finanças para ver seus pontos fortes aqui.</div>`;
+    return;
+  }
+  el.innerHTML = pontos.map(p => {
+    // Aceita tanto objeto {icone, texto} quanto string simples
+    if (typeof p === 'string') return `<div class="ponto-card">✅ ${p}</div>`;
+    return `<div class="ponto-card">${p.icone || '✅'} ${p.texto || p}</div>`;
+  }).join('');
+}
+
+function renderMetasTable(cats) {
+  const el = document.getElementById('metas-table');
+  if (!el) return;
+
+  const METAS = {
+    'Alimentação':{'ideal':15,'max':20},'Moradia':{'ideal':25,'max':35},
+    'Transporte':{'ideal':10,'max':15},'Saúde':{'ideal':5,'max':10},
+    'Educação':{'ideal':5,'max':10},'Lazer':{'ideal':10,'max':15},
+    'Vestuário':{'ideal':5,'max':10},'Tecnologia':{'ideal':5,'max':8},
+    'Delivery':{'ideal':5,'max':8},'Assinaturas':{'ideal':3,'max':5},
+    'Investimento':{'ideal':20,'max':99},'Outros':{'ideal':5,'max':10}
+  };
+
+  const head = `<div class="meta-row head">
+    <span>Categoria</span><span>Seu gasto</span>
+    <span>Ideal</span><span>Máx.</span><span>Status</span>
+  </div>`;
+
+  const rows = cats.map(c => {
+    const m = METAS[c.categoria] || { ideal: 5, max: 10 };
+    const barColor = c.status === 'ok' ? '#34D399' : c.status === 'alto' ? '#F87171' : '#FCD34D';
+    const barW = Math.min(c.pct / m.max * 100, 100);
+    const badge = c.status === 'ok'
+      ? '<span class="badge b-ok">OK</span>'
+      : c.status === 'alto'
+        ? '<span class="badge b-high">Alto</span>'
+        : '<span class="badge b-att">Atenção</span>';
+    return `
+    <div class="meta-row">
+      <span>${CAT_ICONS[c.categoria] || '📦'} ${c.categoria}</span>
+      <div>
+        <div class="meta-bar-wrap">
+          <div class="meta-bar-fill" style="width:${barW}%;background:${barColor}"></div>
+        </div>
+        <span style="font-size:0.75rem;color:var(--txt3)">${c.pct}%</span>
+      </div>
+      <span style="font-size:0.8rem;color:var(--txt2)">${m.ideal}%</span>
+      <span style="font-size:0.8rem;color:var(--txt2)">${m.max}%</span>
+      ${badge}
+    </div>`;
+  }).join('');
+
+  el.innerHTML = head + rows;
+}
+
+// ══════════ CARTÕES VIEW ══════════
+async function loadCartoesView() {
+  const [cartoes, dash] = await Promise.all([
+    api('/api/cartoes'),
+    api(`/api/dashboard?ano=${S.ano}&mes=${S.mes}`)
+  ]);
+  S.cartoes = cartoes;
+  const dashCards = dash.cartoes || [];
+  const grid = document.getElementById('cards-grid');
+  const res = document.getElementById('cards-resumo');
+
+  if (!cartoes.length) {
+    if (grid) grid.innerHTML = `<div style="grid-column:1/-1" class="empty"><div class="empty-ico">💳</div><p>Nenhum cartão cadastrado</p></div>`;
+    if (res) res.style.display = 'none';
+    return;
+  }
+
+  const enriched = cartoes.map(c => {
+    const dc = dashCards.find(d => d.id === c.id) || {};
+    return {
+      ...c,
+      fatura: dc.fatura || 0,                                        // parcela deste mês
+      total_comprometido: dc.total_comprometido || dc.fatura || 0,   // total de todas parcelas
+      pct: dc.pct || 0,                                               // % baseado no total comprometido
+      disponivel: dc.disponivel != null ? dc.disponivel : c.limite_total
+    };
+  });
+
+  // Salvar versão enriquecida para verDetalheCartao usar
+  S.cartoes = enriched;
+
+  const bands = { Mastercard: '⊕', Visa: '◉', Elo: '◈', 'American Express': '✦', Hipercard: '✿' };
+
+  if (grid) grid.innerHTML = enriched.map(c => `
+    <div>
+      <div class="credit-card" style="background:linear-gradient(140deg, ${c.cor}, ${darken(c.cor)})">
+        <div class="cc-bank">${c.banco}</div>
+        <div class="cc-name">${c.nome}</div>
+        <div class="cc-dots">•••• •••• ••••</div>
+        <div class="cc-pbar">
+          <div class="cc-pbar-track">
+            <div class="cc-pbar-fill" style="width:${Math.min(c.pct,100)}%"></div>
+          </div>
+          <div class="cc-pbar-stats">
+            <span>${c.pct}% comprometido</span>
+            <span>${c.bandeira} ${bands[c.bandeira] || '◉'}</span>
+          </div>
+        </div>
+        <div class="cc-footer">
+          <div class="cc-fl">
+            <span class="cc-lbl2">Disponível</span>
+            <span class="cc-val2">R$ ${fmt(c.disponivel)}</span>
+          </div>
+          <div class="cc-fl" style="text-align:right">
+            <span class="cc-lbl2">Comprometido</span>
+            <span class="cc-val2">R$ ${fmt(c.total_comprometido)}</span>
+          </div>
+        </div>
+      </div>
+      <div class="cc-detail">
+        <div class="cc-stat"><div class="cc-stat-lbl">Limite total</div><div class="cc-stat-val">R$ ${fmt(c.limite_total)}</div></div>
+        <div class="cc-stat"><div class="cc-stat-lbl">Fatura do mês</div><div class="cc-stat-val" style="color:var(--v-red)">R$ ${fmt(c.fatura)}</div></div>
+        <div class="cc-stat"><div class="cc-stat-lbl">Vencimento</div><div class="cc-stat-val">Dia ${c.dia_vencimento}</div></div>
+        <div class="cc-actions">
+          <button class="btn-sm" style="background:rgba(52,211,153,0.15);color:#34D399" onclick="verDetalheCartao(${c.id})">📊 Ver detalhes</button>
+          <button class="btn-sm btn-edit" onclick="editCartao(${c.id})">Editar</button>
+          <button class="btn-sm btn-del" onclick="delCartao(${c.id},'${esc(c.nome)}')">Remover</button>
+        </div>
+      </div>
+    </div>`).join('');
+
+  const tot = enriched.reduce((a,c) => a + c.limite_total, 0);
+  const totComp = enriched.reduce((a,c) => a + (c.total_comprometido || 0), 0);
+  const totDisp = enriched.reduce((a,c) => a + c.disponivel, 0);
+  if (res) {
+    res.style.display = '';
+    const rr = document.getElementById('cards-resumo-row');
+    if (rr) rr.innerHTML = `
+      <div><div class="resumo-stat-lbl">Limite total</div><div class="resumo-stat-val">R$ ${fmt(tot)}</div></div>
+      <div><div class="resumo-stat-lbl">Comprometido</div><div class="resumo-stat-val" style="color:var(--acc2)">R$ ${fmt(totComp)}</div></div>
+      <div><div class="resumo-stat-lbl">Disponível</div><div class="resumo-stat-val" style="color:var(--v-green)">R$ ${fmt(totDisp)}</div></div>`;
+  }
+}
+
+// ══════════ DESPESAS VIEW ══════════
+async function loadDespesasView() {
+  despesasRaw = await api(`/api/despesas?ano=${S.ano}&mes=${S.mes}`);
+  // Sincronizar label de mês na view de despesas
+  const lbl = document.getElementById('desp-month-lbl');
+  if (lbl) lbl.textContent = `${MESES[S.mes - 1]} ${S.ano}`;
+  renderDespesas(despesasRaw);
+  updateCatFilter(despesasRaw);
+}
+
+function renderDespesas(list) {
+  const tbody = document.getElementById('desp-tbody');
+  const tot = document.getElementById('filter-total');
+  if (!tbody) return;
+  const total = list.reduce((a, d) => a + d.valor, 0);
+  if (tot) tot.textContent = `${list.length} registros · Total: R$ ${fmt(total)}`;
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2.5rem;color:var(--txt3)">Nenhuma despesa este mês 🎉</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(d => {
+    const ic = CAT_ICONS[d.categoria] || '📦';
+    const dt = new Date(d.data + 'T00:00:00').toLocaleDateString('pt-BR');
+    const cn = d.cn ? `<div style="font-size:0.7rem;color:var(--txt3)">${d.cn}</div>` : '';
+    return `
+    <tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:0.55rem">
+          <span>${ic}</span>
+          <div>
+            <div style="font-weight:500">${d.nome}</div>
+            ${d.observacao ? `<div style="font-size:0.7rem;color:var(--txt3)">${d.observacao}</div>` : ''}
+          </div>
+        </div>
+      </td>
+      <td><span class="badge" style="background:rgba(139,92,246,0.15);color:var(--acc2)">${d.categoria}</span></td>
+      <td style="color:var(--txt2);font-size:0.83rem">${dt}</td>
+      <td>${formaBadge(d.forma_pagamento)}${cn}</td>
+      <td style="font-family:'JetBrains Mono';font-weight:700;color:var(--v-red)">R$ ${fmt(d.valor)}</td>
+      <td><button class="btn-sm btn-del" onclick="delDespesa(${d.id},'${esc(d.nome)}')">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function updateCatFilter(list) {
+  const cats = [...new Set(list.map(d => d.categoria))].sort();
+  const sel = document.getElementById('f-cat');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Todas as categorias</option>' +
+    cats.map(c => `<option ${c===cur?'selected':''}>${c}</option>`).join('');
+}
+
+function filtrarDespesas() {
+  const q = (document.getElementById('busca')?.value || '').toLowerCase();
+  const cat = document.getElementById('f-cat')?.value || '';
+  const forma = document.getElementById('f-forma')?.value || '';
+  renderDespesas(despesasRaw.filter(d =>
+    (!q || d.nome.toLowerCase().includes(q)) &&
+    (!cat || d.categoria === cat) &&
+    (!forma || d.forma_pagamento === forma)
+  ));
+}
+
+// ══════════ CONTAS FIXAS ══════════
+async function loadContasView() {
+  const contas = await api('/api/contas-fixas');
+  const grid = document.getElementById('contas-grid');
+  if (!grid) return;
+  const catIcons = {'Moradia':'🏠','Educação':'📚','Saúde':'💊','Tecnologia':'💻','Transporte':'🚗','Assinaturas':'📱','Outros':'📦'};
+  if (!contas.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1" class="empty"><div class="empty-ico">📋</div><p>Nenhuma conta fixa cadastrada</p></div>`;
+    return;
+  }
+  const hoje = new Date().getDate();
+  grid.innerHTML = contas.map(c => {
+    const dias = c.dia_vencimento - hoje;
+    const urg = dias >= 0 && dias <= 5;
+    return `
+    <div class="conta-card">
+      <div class="cc2-head">
+        <div style="display:flex;align-items:center;gap:0.75rem">
+          <div class="cc2-icon">${catIcons[c.categoria] || '📦'}</div>
+          <div><div class="cc2-name">${c.nome}</div><div class="cc2-cat">${c.categoria}</div></div>
+        </div>
+        ${urg ? '<span style="font-size:1.1rem">⚠️</span>' : ''}
+      </div>
+      <div class="cc2-val">R$ ${fmt(c.valor)}</div>
+      <div class="cc2-foot">
+        <span>Vence dia <strong>${c.dia_vencimento}</strong></span>
+        <div style="display:flex;gap:0.4rem">
+          <button class="btn-sm btn-edit" onclick="editConta(${c.id})">Editar</button>
+          <button class="btn-sm btn-del" onclick="delConta(${c.id},'${esc(c.nome)}')">✕</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════ GASTOS TOTAIS (despesas + contas fixas) ══════════
+let _gastosRaw = []; // {tipo:'despesa'|'fixa', ...campos}
+
+async function loadGastosView() {
+  // Atualizar label do mês
+  const lbl = document.getElementById('gastos-month-lbl');
+  if (lbl) lbl.textContent = `${MESES[S.mes - 1]} ${S.ano}`;
+
+  // Buscar despesas do mês
+  const despesas = await api(`/api/despesas?ano=${S.ano}&mes=${S.mes}`);
+  
+  // Buscar contas fixas (todas — são mensais)
+  const contasFixas = await api('/api/contas-fixas');
+
+  // Montar lista unificada
+  const itensDesp = despesas.map(d => ({ ...d, _tipo: 'despesa' }));
+  const itensFixas = contasFixas.map(c => ({
+    id: c.id,
+    nome: c.nome,
+    valor: c.valor,
+    data: `Dia ${c.dia_vencimento}`,
+    categoria: c.categoria,
+    forma_pagamento: 'fixa',
+    _tipo: 'fixa',
+    observacao: ''
+  }));
+
+  _gastosRaw = [...itensDesp, ...itensFixas];
+
+  // KPIs
+  const totalDesp = despesas.reduce((a, b) => a + b.valor, 0);
+  const totalFixo = contasFixas.reduce((a, b) => a + b.valor, 0);
+  const totalGeral = totalDesp + totalFixo;
+
+  setEl('gt-desp', 'R$ ' + fmt(totalDesp));
+  setEl('gt-desp-n', `${despesas.length} lançamento(s)`);
+  setEl('gt-fixo', 'R$ ' + fmt(totalFixo));
+  setEl('gt-fixo-n', `${contasFixas.length} conta(s) fixa(s)`);
+  setEl('gt-total', 'R$ ' + fmt(totalGeral));
+
+  // Filtro de categorias
+  const cats = [...new Set(_gastosRaw.map(d => d.categoria))].sort();
+  const sel = document.getElementById('gt-cat');
+  if (sel) {
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">Todas as categorias</option>' +
+      cats.map(c => `<option ${c===cur?'selected':''}>${c}</option>`).join('');
+  }
+
+  renderGastos(_gastosRaw);
+}
+
+function renderGastos(list) {
+  const tbody = document.getElementById('gastos-tbody');
+  const tot = document.getElementById('gt-filter-total');
+  if (!tbody) return;
+
+  const total = list.reduce((a, d) => a + d.valor, 0);
+  if (tot) tot.textContent = `${list.length} registros · Total: R$ ${fmt(total)}`;
+
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2.5rem;color:var(--txt3)">Nenhum gasto este mês 🎉</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = list.map(d => {
+    const ic = CAT_ICONS[d.categoria] || '📦';
+    const dt = d._tipo === 'fixa'
+      ? `<span style="color:var(--txt3)">${d.data}</span>`
+      : new Date(d.data + 'T00:00:00').toLocaleDateString('pt-BR');
+
+    const tipoBadge = d._tipo === 'fixa'
+      ? `<span class="badge" style="background:rgba(251,146,60,0.15);color:#FB923C">📋 Conta Fixa</span>`
+      : formaBadge(d.forma_pagamento);
+
+    const delBtn = d._tipo === 'despesa'
+      ? `<button class="btn-sm btn-del" onclick="delDespesa(${d.id},'${esc(d.nome)}')">✕</button>`
+      : `<button class="btn-sm btn-edit" onclick="goto('contas',document.querySelector('[data-view=contas]'))">✎</button>`;
+
+    return `
+    <tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:0.55rem">
+          <span>${ic}</span>
+          <div>
+            <div style="font-weight:500">${d.nome}</div>
+            ${d.observacao ? `<div style="font-size:0.7rem;color:var(--txt3)">${d.observacao}</div>` : ''}
+          </div>
+        </div>
+      </td>
+      <td><span class="badge" style="background:rgba(139,92,246,0.15);color:var(--acc2)">${d.categoria}</span></td>
+      <td style="color:var(--txt2);font-size:0.83rem">${dt}</td>
+      <td>${tipoBadge}</td>
+      <td style="font-family:'JetBrains Mono';font-weight:700;color:var(--v-red)">R$ ${fmt(d.valor)}</td>
+      <td>${delBtn}</td>
+    </tr>`;
+  }).join('');
+}
+
+function filtrarGastos() {
+  const q = (document.getElementById('gt-busca')?.value || '').toLowerCase();
+  const cat = document.getElementById('gt-cat')?.value || '';
+  const tipo = document.getElementById('gt-tipo')?.value || '';
+  renderGastos(_gastosRaw.filter(d =>
+    (!q || d.nome.toLowerCase().includes(q)) &&
+    (!cat || d.categoria === cat) &&
+    (!tipo || d._tipo === tipo)
+  ));
+}
+
+// ══════════ HISTÓRICO ══════════
+async function loadHistorico() {
+  const hist = await api('/api/historico');
+  const hoje = new Date();
+  const canvas = document.getElementById('ch-hist');
+  const cards = document.getElementById('hist-cards');
+
+  if (CHARTS.hist) CHARTS.hist.destroy();
+  const dark = S.tema === 'dark';
+  const gc = dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+
+  const ctx = canvas?.getContext('2d');
+  if (ctx) {
+    const grad = ctx.createLinearGradient(0, 0, 0, 300);
+    grad.addColorStop(0, 'rgba(139,92,246,0.4)');
+    grad.addColorStop(1, 'rgba(139,92,246,0.02)');
+
+    CHARTS.hist = new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels: hist.map(h => h.label),
+        datasets: [{
+          data: hist.map(h => h.total),
+          borderColor: '#8B5CF6',
+          backgroundColor: grad,
+          borderWidth: 2.5,
+          pointBackgroundColor: hist.map((h) =>
+            h.ano === hoje.getFullYear() && h.mes === hoje.getMonth() + 1 ? '#34D399' : '#8B5CF6'),
+          pointRadius: 4.5, pointHoverRadius: 7,
+          tension: 0.4, fill: true
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        scales: {
+          x: { grid: { display: false } },
+          y: { grid: { color: gc }, ticks: { callback: v => 'R$ ' + fmt(v), font: { size: 11 } } }
+        },
+        plugins: { legend: { display: false },
+          tooltip: { callbacks: { label: c => ` R$ ${fmt(c.raw)}` } } },
+        animation: { duration: 700 }
+      }
+    });
+  }
+
+  if (cards) {
+    // Montar janela: 1 mês antes do atual + atual + 3 meses depois
+    // hist pode não ter meses futuros; gerar os futuros zerados
+    const todosOsMeses = [];
+    for (let i = -1; i <= 3; i++) {
+      const d = new Date(hoje.getFullYear(), hoje.getMonth() + i, 1);
+      const y = d.getFullYear();
+      const m = d.getMonth() + 1;
+      const label = MESES_BR[m-1] + '/' + String(y).slice(2);
+      const existing = hist.find(h => h.ano === y && h.mes === m);
+      const isCurrent = (i === 0);
+      todosOsMeses.push({ ano: y, mes: m, label, total: existing?.total || 0, isCurrent });
+    }
+
+    cards.innerHTML = todosOsMeses.map((m, i) => {
+      const prev = todosOsMeses[i - 1];
+      let diffHtml = '';
+      if (prev && prev.total > 0 && m.total > 0) {
+        const d = ((m.total - prev.total) / prev.total * 100).toFixed(1);
+        const up = m.total >= prev.total;
+        diffHtml = `<div class="hc-diff ${up?'up':'down'}">${up?'↑':'↓'} ${Math.abs(d)}%</div>`;
+      }
+      const futuroBadge = i > 1 ? `<div style="font-size:0.65rem;color:var(--txt3);margin-top:0.2rem">parcelas futuras</div>` : '';
+      return `
+      <div class="hist-card ${m.isCurrent?'current':''}" onclick="jumpToMonth(${m.ano},${m.mes})" style="cursor:pointer" title="Ver Gastos Totais de ${m.label}">
+        <div class="hc-mes">${m.label}${m.isCurrent?' ●':''}</div>
+        <div class="hc-val" style="color:${m.total>0?'var(--txt)':'var(--txt3)'}">R$ ${fmt(m.total)}</div>
+        ${diffHtml}
+        ${futuroBadge}
+        <div style="font-size:0.65rem;color:var(--acc2);margin-top:0.3rem">→ ver gastos</div>
+      </div>`;
+    }).join('');
+  }
+}
+
+function jumpToMonth(ano, mes) {
+  S.ano = ano; S.mes = mes;
+  updateMonthLabel();
+  goto('gastos', document.querySelector('[data-view="gastos"]'));
+}
+
+// ══════════ PERFIL ══════════
+async function loadPerfil() {
+  const p = await api('/api/profile');
+  setVal('p-nome', p.nome || '');
+  setVal('p-sal', p.salario || '');
+  setVal('p-out', p.outras_rendas || '');
+  setVal('p-dia', p.dia_pagamento || 5);
+  updatePerfilTotal();
+  const av = document.getElementById('perfil-av');
+  if (av) av.textContent = (p.nome || 'U').charAt(0).toUpperCase();
+  ['p-sal','p-out'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', updatePerfilTotal);
+  });
+
+  // Renderizar seletor de tema
+  const coresDef = [
+    { key: 'roxo',   bg: 'linear-gradient(135deg,#8B5CF6,#A78BFA)' },
+    { key: 'verde',  bg: 'linear-gradient(135deg,#10B981,#34D399)' },
+    { key: 'vermelho',bg: 'linear-gradient(135deg,#EF4444,#F87171)' },
+    { key: 'branco', bg: 'linear-gradient(135deg,#E4E4E7,#F9FAFB)', textColor: '#18181B' },
+    { key: 'preto',  bg: 'linear-gradient(135deg,#18181B,#09090B)' }
+  ];
+  const coresEl = document.getElementById('perfil-tema-cores');
+  if (coresEl) {
+    coresEl.innerHTML = coresDef.map(c => `
+      <button class="perfil-tema-cor-btn ${(p.tema_cor||'roxo')===c.key?'active':''}"
+        style="background:${c.bg};color:${c.textColor||'white'}"
+        onclick="mudarPerfilTema('cor','${c.key}')">
+        ${(p.tema_cor||'roxo')===c.key ? '✓' : ''}
+      </button>`).join('');
+  }
+  const modosEl = document.getElementById('perfil-tema-modos');
+  if (modosEl) {
+    modosEl.innerHTML = `
+      <button class="perfil-tema-modo-btn ${(p.tema_modo||'escuro')==='claro'?'active':''}" onclick="mudarPerfilTema('modo','claro')">☀️ Claro</button>
+      <button class="perfil-tema-modo-btn ${(p.tema_modo||'escuro')==='escuro'?'active':''}" onclick="mudarPerfilTema('modo','escuro')">🌙 Escuro</button>
+    `;
+  }
+}
+
+async function mudarPerfilTema(tipo, valor) {
+  const p = await api('/api/profile');
+  if (tipo === 'cor') p.tema_cor = valor;
+  else p.tema_modo = valor;
+  await api('/api/profile', 'POST', p);
+  if (typeof aplicarTema === 'function') await aplicarTema();
+  else {
+    const modo = p.tema_modo || 'escuro';
+    applyTema(modo === 'escuro' ? 'dark' : 'light');
+  }
+  loadPerfil();
+  toast('Tema atualizado!', 'ok');
+}
+
+function updatePerfilTotal() {
+  const s = parseFloat(getVal('p-sal') || 0);
+  const o = parseFloat(getVal('p-out') || 0);
+  setVal('p-tot', 'R$ ' + fmt(s + o));
+}
+
+async function savePerfil() {
+  const data = {
+    nome: getVal('p-nome'),
+    salario: parseFloat(getVal('p-sal')) || 0,
+    outras_rendas: parseFloat(getVal('p-out')) || 0,
+    dia_pagamento: parseInt(getVal('p-dia')) || 5,
+    tema: S.tema
+  };
+  await api('/api/profile', 'POST', data);
+  toast('Perfil salvo!', 'ok');
+  loadDashboard();
+}
+
+// ══════════ MODALS ══════════
+function openModal(tipo) {
+  if (tipo === 'despesa') {
+    setVal('d-data', new Date().toISOString().split('T')[0]);
+    loadCartaoSelect();
+    document.getElementById('m-despesa').classList.add('open');
+  } else if (tipo === 'cartao') {
+    setEl('m-cartao-title', 'Novo Cartão');
+    clearCartaoForm();
+    document.getElementById('m-cartao').classList.add('open');
+  } else if (tipo === 'conta') {
+    setEl('m-conta-title', 'Nova Conta Fixa');
+    clearContaForm();
+    document.getElementById('m-conta').classList.add('open');
+  }
+}
+
+function closeModal(id) { document.getElementById(id)?.classList.remove('open'); }
+function closeOverlay(e, id) { if (e.target === e.currentTarget) closeModal(id); }
+
+async function loadCartaoSelect() {
+  const c = await api('/api/cartoes');
+  const s = document.getElementById('d-cartao');
+  if (s) s.innerHTML = '<option value="">Selecionar</option>' +
+    c.map(x => `<option value="${x.id}">${x.nome} — ${x.banco}</option>`).join('');
+}
+
+function onFormaChange() {
+  const f = getVal('d-forma');
+  const cr = document.getElementById('cartao-row');
+  const pr = document.getElementById('parcela-row');
+  if (cr) cr.style.display = (f==='credito'||f==='parcelado') ? '' : 'none';
+  if (pr) pr.style.display = f==='parcelado' ? '' : 'none';
+}
+
+// ══════════ CRUD DESPESAS ══════════
+async function saveDespesa(e) {
+  e.preventDefault();
+  const data = {
+    nome: getVal('d-nome'), valor: parseFloat(getVal('d-val')),
+    data: getVal('d-data'), categoria: getVal('d-cat'),
+    forma_pagamento: getVal('d-forma'), cartao_id: getVal('d-cartao') || null,
+    parcelas: parseInt(getVal('d-parc')) || 1, observacao: getVal('d-obs')
+  };
+  if (!data.nome || !data.valor || !data.categoria || !data.forma_pagamento) {
+    toast('Preencha todos os campos obrigatórios', 'err'); return;
+  }
+  const r = await api('/api/despesas', 'POST', data);
+  if (r.ok) {
+    closeModal('m-despesa'); e.target.reset();
+    document.getElementById('cartao-row').style.display = 'none';
+    document.getElementById('parcela-row').style.display = 'none';
+    toast('Despesa adicionada!', 'ok');
+    loadDashboard();
+    const av = document.querySelector('.nav-link.active');
+    if (av?.dataset?.view === 'despesas') loadDespesasView();
+    if (av?.dataset?.view === 'dicas') loadDicas();
+  }
+}
+
+async function delDespesa(id, nome) {
+  if (!confirm(`Remover "${nome}"?\n(Se parcelado, todas as parcelas serão removidas)`)) return;
+  await api(`/api/despesas/${id}`, 'DELETE');
+  toast('Despesa removida', 'ok');
+  loadDashboard();
+  loadDespesasView();
+}
+
+// ══════════ CRUD CARTÕES ══════════
+function clearCartaoForm() {
+  ['c-id','c-nome','c-banco','c-lim','c-fech','c-venc'].forEach(id => setVal(id,''));
+  setVal('c-band','Mastercard'); setVal('c-cor','#8B5CF6');
+  document.querySelectorAll('.col-opt').forEach((el,i) => {
+    el.classList.toggle('sel',i===0); el.textContent = i===0?'✓':'';
+  });
+}
+
+function pickColor(el) {
+  document.querySelectorAll('.col-opt').forEach(o => { o.classList.remove('sel'); o.textContent=''; });
+  el.classList.add('sel'); el.textContent='✓';
+  setVal('c-cor', el.dataset.c);
+}
+
+async function saveCartao(e) {
+  e.preventDefault();
+  const id = getVal('c-id');
+  const data = {
+    nome: getVal('c-nome'), banco: getVal('c-banco'), bandeira: getVal('c-band'),
+    limite_total: parseFloat(getVal('c-lim')), dia_fechamento: parseInt(getVal('c-fech')),
+    dia_vencimento: parseInt(getVal('c-venc')), cor: getVal('c-cor')
+  };
+  const r = await api(id ? `/api/cartoes/${id}` : '/api/cartoes', id ? 'PUT' : 'POST', data);
+  if (r.ok) {
+    closeModal('m-cartao');
+    toast(id ? 'Cartão atualizado!' : 'Cartão adicionado!', 'ok');
+    loadCartoesView();
+  }
+}
+
+async function editCartao(id) {
+  const c = S.cartoes.find(x => x.id === id);
+  if (!c) return;
+  setVal('c-id',c.id); setVal('c-nome',c.nome); setVal('c-banco',c.banco);
+  setVal('c-band',c.bandeira); setVal('c-lim',c.limite_total);
+  setVal('c-fech',c.dia_fechamento); setVal('c-venc',c.dia_vencimento); setVal('c-cor',c.cor);
+  document.querySelectorAll('.col-opt').forEach(el => {
+    const s = el.dataset.c === c.cor;
+    el.classList.toggle('sel',s); el.textContent = s ? '✓' : '';
+  });
+  setEl('m-cartao-title','Editar Cartão');
+  document.getElementById('m-cartao').classList.add('open');
+}
+
+async function delCartao(id, nome) {
+  if (!confirm(`Remover cartão "${nome}"?`)) return;
+  await api(`/api/cartoes/${id}`, 'DELETE');
+  toast('Cartão removido', 'ok');
+  loadCartoesView();
+}
+
+// ══════════ CRUD CONTAS FIXAS ══════════
+function clearContaForm() {
+  ['cf-id','cf-nome','cf-val','cf-dia'].forEach(id => setVal(id,''));
+  setVal('cf-cat','Moradia');
+}
+
+async function saveConta(e) {
+  e.preventDefault();
+  const id = getVal('cf-id');
+  const data = {
+    nome: getVal('cf-nome'), valor: parseFloat(getVal('cf-val')),
+    dia_vencimento: parseInt(getVal('cf-dia')), categoria: getVal('cf-cat')
+  };
+  const r = await api(id ? `/api/contas-fixas/${id}` : '/api/contas-fixas', id?'PUT':'POST', data);
+  if (r.ok) {
+    closeModal('m-conta');
+    toast(id ? 'Conta atualizada!' : 'Conta adicionada!', 'ok');
+    loadContasView();
+  }
+}
+
+async function editConta(id) {
+  const c = await api('/api/contas-fixas');
+  const f = c.find(x => x.id === id);
+  if (!f) return;
+  setVal('cf-id',f.id); setVal('cf-nome',f.nome); setVal('cf-val',f.valor);
+  setVal('cf-dia',f.dia_vencimento); setVal('cf-cat',f.categoria);
+  setEl('m-conta-title','Editar Conta Fixa');
+  document.getElementById('m-conta').classList.add('open');
+}
+
+async function delConta(id, nome) {
+  if (!confirm(`Remover "${nome}"?`)) return;
+  await api(`/api/contas-fixas/${id}`, 'DELETE');
+  toast('Conta removida', 'ok');
+  loadContasView();
+}
+
+// ══════════ ALERTAS ══════════
+function renderAlerts(alertas) {
+  const badge = document.getElementById('alert-count');
+  const list = document.getElementById('ap-list');
+  if (badge) {
+    badge.style.display = alertas.length ? 'flex' : 'none';
+    badge.textContent = alertas.length;
+  }
+  if (list) list.innerHTML = alertas.length
+    ? alertas.map(a => `<div class="ap-item">${a.mensagem}</div>`).join('')
+    : '<div class="ap-item" style="color:var(--txt3);text-align:center">Sem alertas 🎉</div>';
+}
+
+function toggleAlerts() {
+  const p = document.getElementById('alerts-panel');
+  if (p) p.style.display = p.style.display === 'none' ? '' : 'none';
+}
+
+function closeAlerts() {
+  const p = document.getElementById('alerts-panel');
+  if (p) p.style.display = 'none';
+}
+
+async function clearAlerts() {
+  await api('/api/alertas/limpar', 'POST');
+  const badge = document.getElementById('alert-count');
+  if (badge) badge.style.display = 'none';
+  const list = document.getElementById('ap-list');
+  if (list) list.innerHTML = '<div class="ap-item" style="color:var(--txt3);text-align:center">Sem alertas 🎉</div>';
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#alerts-panel') && !e.target.closest('#alert-btn')) closeAlerts();
+});
+
+// ══════════ TOAST ══════════
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.className = `toast ${type} on`;
+  setTimeout(() => el.classList.remove('on'), 3200);
+}
+
+// ══════════ UTILS ══════════
+function fmt(v) {
+  if (v == null || isNaN(v)) return '0,00';
+  return parseFloat(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function setEl(id, v) { const e = document.getElementById(id); if (e) e.textContent = v; }
+function setVal(id, v) { const e = document.getElementById(id); if (e) e.value = v; }
+function getVal(id) { return document.getElementById(id)?.value || ''; }
+function esc(s) { return (s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
+
+function formaBadge(f, asHtml = true) {
+  const map = { dinheiro:'💵 Dinheiro', debito:'💳 Débito', credito:'💳 Crédito', parcelado:'📦 Parcelado' };
+  const cls = { dinheiro:'rgba(52,211,153,0.15):#34D399', debito:'rgba(96,165,250,0.15):#60A5FA',
+    credito:'rgba(139,92,246,0.15):#A78BFA', parcelado:'rgba(251,146,60,0.15):#FB923C' };
+  if (!asHtml) return map[f] || f;
+  const [bg, col] = (cls[f] || 'rgba(148,163,184,0.15):#94A3B8').split(':');
+  return `<span class="badge" style="background:${bg};color:${col}">${map[f]||f}</span>`;
+}
+
+function palette(n) {
+  const cols = ['#8B5CF6','#34D399','#60A5FA','#FB923C','#F472B6',
+                '#38BDF8','#A3E635','#FCD34D','#C084FC','#6EE7B7','#93C5FD','#FCA5A5'];
+  return Array.from({length: n}, (_, i) => cols[i % cols.length]);
+}
+
+function darken(hex) {
+  try {
+    const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+    return `rgb(${Math.floor(r*.6)},${Math.floor(g*.6)},${Math.floor(b*.6)})`;
+  } catch { return hex; }
+}
+
+// ══════════ INVESTIMENTOS ══════════
+const INV_TIPOS = {
+  renda_fixa: { icon: '🏦', label: 'Renda Fixa', color: '#34D399' },
+  renda_variavel: { icon: '📊', label: 'Renda Variável', color: '#8B5CF6' },
+  fii: { icon: '🏢', label: 'FII', color: '#60A5FA' },
+  criptomoeda: { icon: '₿', label: 'Cripto', color: '#FB923C' },
+  previdencia: { icon: '🛡️', label: 'Previdência', color: '#A78BFA' },
+  poupanca: { icon: '🐷', label: 'Poupança', color: '#34D399' },
+  outros: { icon: '💼', label: 'Outros', color: '#94A3B8' }
+};
+
+async function loadInvestimentos() {
+  const invs = await api('/api/investimentos');
+  const grid = document.getElementById('inv-grid');
+  if (!grid) return;
+
+  // Calcular totais
+  const totalPatrimonio = invs.reduce((a, inv) => a + (inv.valor_atual || inv.valor_aportado || 0), 0);
+  const totalAportado = invs.reduce((a, inv) => a + (inv.valor_aportado || 0), 0);
+  const ganho = totalPatrimonio - totalAportado;
+  const rentPct = totalAportado > 0 ? ((ganho / totalAportado) * 100).toFixed(2) : 0;
+
+  setEl('inv-patrimonio', 'R$ ' + fmt(totalPatrimonio));
+  setEl('inv-aportado', 'R$ ' + fmt(totalAportado));
+  setEl('inv-rent', (ganho >= 0 ? '+' : '') + rentPct + '%');
+  setEl('inv-rent-sub', ganho >= 0
+    ? `+R$ ${fmt(ganho)} de rendimento`
+    : `-R$ ${fmt(Math.abs(ganho))} de perda`);
+
+  const rentEl = document.getElementById('inv-rent');
+  if (rentEl) rentEl.style.color = ganho >= 0 ? 'var(--v-green)' : 'var(--v-red)';
+
+  if (!invs.length) {
+    grid.innerHTML = `<div class="empty"><div class="empty-ico">📈</div><p>Nenhum investimento cadastrado</p></div>`;
+    return;
+  }
+
+  grid.innerHTML = invs.map(inv => {
+    const tp = INV_TIPOS[inv.tipo] || INV_TIPOS.outros;
+    const vAtual = inv.valor_atual || inv.valor_aportado || 0;
+    const vAport = inv.valor_aportado || 0;
+    const diff = vAtual - vAport;
+    const diffPct = vAport > 0 ? ((diff / vAport) * 100).toFixed(2) : 0;
+    const pct = Math.min((vAtual / (totalPatrimonio || 1)) * 100, 100).toFixed(1);
+    const aportes = inv.aportes || [];
+
+    return `
+    <div class="inv-card">
+      <div class="inv-card-head">
+        <div class="inv-icon" style="background:${tp.color}22;color:${tp.color}">${tp.icon}</div>
+        <div class="inv-info">
+          <div class="inv-nome">${inv.nome}</div>
+          <div class="inv-tipo-lbl">${tp.label}${inv.rentabilidade_info ? ' · ' + inv.rentabilidade_info : ''}</div>
+        </div>
+        <div class="inv-actions">
+          <button class="btn-sm btn-edit" onclick="abrirAporte(${inv.id})">+ Aporte</button>
+          <button class="btn-sm btn-edit" onclick="editInvestimento(${inv.id})">✎</button>
+          <button class="btn-sm btn-del" onclick="delInvestimento(${inv.id},'${esc(inv.nome)}')">✕</button>
+        </div>
+      </div>
+      <div class="inv-valores">
+        <div class="inv-val-item">
+          <div class="inv-val-lbl">Valor atual</div>
+          <div class="inv-val-num" style="color:var(--v-green)">R$ ${fmt(vAtual)}</div>
+        </div>
+        <div class="inv-val-item">
+          <div class="inv-val-lbl">Investido</div>
+          <div class="inv-val-num">R$ ${fmt(vAport)}</div>
+        </div>
+        <div class="inv-val-item">
+          <div class="inv-val-lbl">Rendimento</div>
+          <div class="inv-val-num" style="color:${diff >= 0 ? 'var(--v-green)' : 'var(--v-red)'}">
+            ${diff >= 0 ? '+' : ''}R$ ${fmt(diff)} (${diffPct}%)
+          </div>
+        </div>
+      </div>
+      <div class="inv-bar-wrap">
+        <div class="inv-bar-fill" style="width:${pct}%;background:${tp.color}"></div>
+      </div>
+      <div style="font-size:0.72rem;color:var(--txt3);margin-top:0.25rem">${pct}% do portfólio · ${aportes.length} aporte(s)</div>
+      ${inv.observacao ? `<div style="font-size:0.78rem;color:var(--txt2);margin-top:0.35rem">📝 ${inv.observacao}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function openModalInvestimento() {
+  setEl('m-inv-title', 'Novo Investimento');
+  ['inv-id','inv-nome','inv-atual','inv-rent-info','inv-obs'].forEach(id => setVal(id,''));
+  setVal('inv-tipo',''); setVal('inv-aportado','');
+  document.getElementById('m-investimento').classList.add('open');
+}
+
+async function editInvestimento(id) {
+  const invs = await api('/api/investimentos');
+  const inv = invs.find(x => x.id === id);
+  if (!inv) return;
+  setEl('m-inv-title','Editar Investimento');
+  setVal('inv-id', inv.id);
+  setVal('inv-nome', inv.nome);
+  setVal('inv-tipo', inv.tipo);
+  setVal('inv-aportado', inv.valor_aportado);
+  setVal('inv-atual', inv.valor_atual || '');
+  setVal('inv-rent-info', inv.rentabilidade_info || '');
+  setVal('inv-obs', inv.observacao || '');
+  document.getElementById('m-investimento').classList.add('open');
+}
+
+async function saveInvestimento(e) {
+  e.preventDefault();
+  const id = getVal('inv-id');
+  const aportado = parseFloat(getVal('inv-aportado'));
+  const atual = parseFloat(getVal('inv-atual')) || aportado;
+  const hoje = new Date().toISOString().split('T')[0];
+  const data = {
+    nome: getVal('inv-nome'),
+    tipo: getVal('inv-tipo'),
+    valor_aportado: aportado,
+    valor_atual: atual,
+    rentabilidade_info: getVal('inv-rent-info'),
+    observacao: getVal('inv-obs'),
+    aportes: id ? undefined : [{ valor: aportado, data: hoje }]
+  };
+
+  if (id) {
+    // Edição: atualiza só os metadados, não gera nova despesa
+    await api(`/api/investimentos/${id}`, 'PUT', data);
+    toast('Investimento atualizado!', 'ok');
+  } else {
+    // Novo investimento: salva + gera despesa na categoria Investimento
+    await api('/api/investimentos', 'POST', data);
+    await api('/api/despesas', 'POST', {
+      nome: `Investimento: ${data.nome}`,
+      valor: aportado,
+      data: hoje,
+      categoria: 'Investimento',
+      forma_pagamento: 'debito',
+      cartao_id: null,
+      parcelas: 1,
+      observacao: data.rentabilidade_info || data.observacao || ''
+    });
+    toast('Investimento adicionado e registrado nos gastos!', 'ok');
+  }
+  closeModal('m-investimento');
+  loadInvestimentos();
+  loadDashboard();
+}
+
+async function delInvestimento(id, nome) {
+  if (!confirm(`Remover "${nome}"?`)) return;
+  await api(`/api/investimentos/${id}`, 'DELETE');
+  toast('Investimento removido', 'ok');
+  loadInvestimentos();
+}
+
+function abrirAporte(id) {
+  setVal('aporte-inv-id', id);
+  setVal('aporte-val', '');
+  document.getElementById('m-aporte').classList.add('open');
+}
+
+async function confirmarAporte() {
+  const id = parseInt(getVal('aporte-inv-id'));
+  const valor = parseFloat(getVal('aporte-val'));
+  if (!valor || valor <= 0) { toast('Valor inválido', 'err'); return; }
+
+  // Registrar aporte no investimento
+  await api(`/api/investimentos/${id}/aporte`, 'POST', { valor });
+
+  // Buscar nome do investimento para a despesa
+  const invs = await api('/api/investimentos');
+  const inv = invs.find(x => x.id === id);
+  const nomeInv = inv ? inv.nome : 'Investimento';
+
+  // Gerar despesa para aparecer nos gastos do mês
+  const hoje = new Date().toISOString().split('T')[0];
+  await api('/api/despesas', 'POST', {
+    nome: `Aporte: ${nomeInv}`,
+    valor: valor,
+    data: hoje,
+    categoria: 'Investimento',
+    forma_pagamento: 'debito',
+    cartao_id: null,
+    parcelas: 1,
+    observacao: 'Aporte em investimento'
+  });
+
+  closeModal('m-aporte');
+  toast('Aporte registrado e lançado nos gastos!', 'ok');
+  loadInvestimentos();
+  loadDashboard();
+}
+
+// ══════════ DETALHE DO CARTÃO (mês a mês) ══════════
+// Estado interno para navegação no detalhe do cartão
+let _detalheCartaoId = null;
+let _detalheCartaoBaseAno = null;
+let _detalheCartaoBaseMes = null;
+
+async function verDetalheCartao(cartaoId, baseAno, baseMes) {
+  cartaoId = parseInt(cartaoId);
+  _detalheCartaoId = cartaoId;
+
+  // Mês base = parâmetro ou mês atual do S
+  const anoBase = baseAno || S.ano;
+  const mesBase = baseMes || S.mes;
+  _detalheCartaoBaseAno = anoBase;
+  _detalheCartaoBaseMes = mesBase;
+
+  // Buscar cartão
+  let cartao = S.cartoes.find(c => Number(c.id) === cartaoId);
+  if (!cartao) {
+    const todos = await api('/api/cartoes');
+    const base = todos.find(c => Number(c.id) === cartaoId);
+    if (!base) { toast('Cartão não encontrado', 'err'); return; }
+    const dash = await api(`/api/dashboard?ano=${anoBase}&mes=${mesBase}`);
+    const dc = (dash.cartoes || []).find(d => Number(d.id) === cartaoId) || {};
+    cartao = { ...base, fatura: dc.fatura || 0, pct: dc.pct || 0, total_comprometido: dc.total_comprometido || 0, disponivel: dc.disponivel || base.limite_total };
+  }
+
+  // Montar view
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  let detView = document.getElementById('v-cartao-detalhe');
+  if (!detView) {
+    detView = document.createElement('div');
+    detView.id = 'v-cartao-detalhe';
+    detView.className = 'view';
+    document.querySelector('.main').appendChild(detView);
+  }
+  detView.classList.add('active');
+
+  // Coletar: 1 mês antes + mês base + 3 meses depois
+  const mesesData = [];
+  for (let i = -1; i <= 3; i++) {
+    const d = new Date(anoBase, mesBase - 1 + i, 1);
+    const y = d.getFullYear();
+    const m = d.getMonth() + 1;
+    const despesas = await api(`/api/despesas?ano=${y}&mes=${m}`);
+    const doCartao = despesas.filter(x => Number(x.cartao_id) == cartaoId);
+    const total = doCartao.reduce((a, b) => a + b.valor, 0);
+    const isBase = (y === anoBase && m === mesBase);
+    mesesData.push({ ano: y, mes: m, label: MESES_BR[m-1] + '/' + String(y).slice(2), total, despesas: doCartao, isBase });
+  }
+
+  const used = cartao.total_comprometido || cartao.fatura || 0;
+  const pct = Math.min((used / cartao.limite_total) * 100, 100).toFixed(1);
+  const bands = { Mastercard: '⊕', Visa: '◉', Elo: '◈', 'American Express': '✦', Hipercard: '✿' };
+
+  // Calcular mês anterior/próximo para navegação
+  const dPrev = new Date(anoBase, mesBase - 2, 1);
+  const dNext = new Date(anoBase, mesBase, 1);
+
+  detView.innerHTML = `
+    <div class="view-head">
+      <div style="display:flex;align-items:center;gap:0.75rem">
+        <button class="btn-ghost" onclick="goto('cartoes',document.querySelector('[data-view=cartoes]'))">← Voltar</button>
+        <h1>${cartao.nome}</h1>
+      </div>
+    </div>
+
+    <div class="credit-card" style="background:linear-gradient(140deg,${cartao.cor},${darken(cartao.cor)});max-width:380px;margin-bottom:1.5rem">
+      <div class="cc-bank">${cartao.banco}</div>
+      <div class="cc-name">${cartao.nome}</div>
+      <div class="cc-dots">•••• •••• ••••</div>
+      <div class="cc-pbar">
+        <div class="cc-pbar-track"><div class="cc-pbar-fill" style="width:${pct}%"></div></div>
+        <div class="cc-pbar-stats"><span>${pct}% comprometido</span><span>${cartao.bandeira} ${bands[cartao.bandeira]||'◉'}</span></div>
+      </div>
+      <div class="cc-footer">
+        <div class="cc-fl"><span class="cc-lbl2">Disponível</span><span class="cc-val2">R$ ${fmt(cartao.disponivel)}</span></div>
+        <div class="cc-fl" style="text-align:right"><span class="cc-lbl2">Comprometido</span><span class="cc-val2">R$ ${fmt(used)}</span></div>
+      </div>
+    </div>
+
+    <div class="card mt">
+      <div class="card-head">
+        <h3>Gastos mês a mês</h3>
+        <div style="display:flex;align-items:center;gap:0.5rem">
+          <button class="mnav" onclick="verDetalheCartao(${cartaoId},${dPrev.getFullYear()},${dPrev.getMonth()+1})">‹</button>
+          <span style="font-size:0.82rem;color:var(--txt2);min-width:80px;text-align:center">${MESES_BR[mesBase-1]}/${String(anoBase).slice(2)}</span>
+          <button class="mnav" onclick="verDetalheCartao(${cartaoId},${dNext.getFullYear()},${dNext.getMonth()+1})">›</button>
+        </div>
+      </div>
+      <div style="padding:1rem">
+        ${mesesData.map(md => `
+        <div style="margin-bottom:1.5rem;${md.isBase ? 'border-left:3px solid '+cartao.cor+';padding-left:0.75rem;' : ''}">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.35rem">
+            <span style="font-weight:${md.isBase?'700':'600'};color:${md.isBase?'var(--txt)':'var(--txt2)'};font-size:${md.isBase?'1rem':'0.9rem'}">${md.label}${md.isBase?' ← atual':''}</span>
+            <span style="font-family:'JetBrains Mono';color:${md.total>0?'var(--v-red)':'var(--txt3)'};font-weight:700">R$ ${fmt(md.total)}</span>
+          </div>
+          <div style="background:var(--surf2);border-radius:4px;height:4px;margin-bottom:0.6rem">
+            <div style="height:4px;border-radius:4px;background:${cartao.cor};width:${Math.min((md.total/cartao.limite_total)*100,100)}%"></div>
+          </div>
+          ${md.despesas.length
+            ? md.despesas.map(dx => `
+              <div class="tx-row" style="padding:0.4rem 0;border-bottom:1px solid var(--bdr)">
+                <div class="tx-ico" style="background:${CAT_COLORS[dx.categoria]||'rgba(139,92,246,0.1)'}">${CAT_ICONS[dx.categoria]||'📦'}</div>
+                <div class="tx-inf">
+                  <div class="tx-nm">${dx.nome}</div>
+                  <div class="tx-meta">${dx.categoria}</div>
+                </div>
+                <div style="text-align:right">
+                  <div class="tx-amt">−R$ ${fmt(dx.valor)}</div>
+                  <div class="tx-dt">${new Date(dx.data+'T00:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})}</div>
+                </div>
+              </div>`).join('')
+            : `<div style="color:var(--txt3);font-size:0.82rem;padding:0.25rem 0">Nenhuma despesa neste mês</div>`
+          }
+        </div>`).join('')}
+      </div>
+    </div>
+  `;
+}
+
+</script>
+<script>
+/**
+ * FinFinance v2.0 — Extensões Mobile & Temas
+ * Este arquivo adiciona novas funcionalidades sem quebrar o app.js original
+ */
+
+// ══════════════════════════════════════════════
+//  SISTEMA DE TEMAS
+// ══════════════════════════════════════════════
+
+const TEMAS = {
+  cores: ['roxo', 'verde', 'vermelho', 'branco', 'preto'],
+  modos: ['claro', 'escuro']
+};
+
+async function aplicarTema() {
+  let profile = null;
+  try {
+    if (window.AUTH && window.AUTH.getSession()) {
+      profile = await DB.getProfile();
+    }
+  } catch(e) {}
+  const cor = profile?.tema_cor || 'roxo';
+  const modo = profile?.tema_modo || 'escuro';
+  
+  document.documentElement.setAttribute('data-tema-cor', cor);
+  document.documentElement.setAttribute('data-tema-modo', modo);
+  
+  // Manter compatibilidade com código antigo
+  const dataTheme = modo === 'escuro' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', dataTheme);
+  
+  // Sincronizar state global
+  if (typeof S !== 'undefined') {
+    S.tema = dataTheme;
+    sessionStorage.setItem('ff-tema', dataTheme);
+  }
+  
+  // Atualizar ícone do botão de tema
+  const icon = document.getElementById('tema-icon');
+  if (icon) icon.textContent = dataTheme === 'dark' ? '☀' : '🌙';
+}
+
+async function mudarTema(cor, modo) {
+  const profile = await DB.getProfile();
+  profile.tema_cor = cor;
+  profile.tema_modo = modo;
+  await DB.updateProfile(profile);
+  await aplicarTema();
+}
+
+// ══════════════════════════════════════════════
+//  BOTTOM NAVIGATION
+// ══════════════════════════════════════════════
+
+function criarBottomNav() {
+  // Verificar se já existe
+  if (document.querySelector('.bottom-nav')) return;
+  
+  const nav = document.createElement('nav');
+  nav.className = 'bottom-nav';
+  nav.innerHTML = `
+    <a href="#" class="bottom-nav-item active" data-view="dashboard" onclick="gotoMobile('dashboard', this); return false;">
+      <div class="icon">🏠</div>
+      <span>Início</span>
+    </a>
+    <a href="#" class="bottom-nav-item" data-view="cartoes" onclick="gotoMobile('cartoes', this); return false;">
+      <div class="icon">💳</div>
+      <span>Cartões</span>
+    </a>
+    <a href="#" class="bottom-nav-item" data-view="investimentos" onclick="gotoMobile('investimentos', this); return false;">
+      <div class="icon">📈</div>
+      <span>Investir</span>
+    </a>
+    <a href="#" class="bottom-nav-item" data-view="despesas" onclick="gotoMobile('despesas', this); return false;">
+      <div class="icon">🧾</div>
+      <span>Despesas</span>
+    </a>
+    <a href="#" class="bottom-nav-item" data-view="config" onclick="gotoMobile('config', this); return false;">
+      <div class="icon">⚙️</div>
+      <span>Config</span>
+    </a>
+  `;
+  
+  document.body.appendChild(nav);
+}
+
+function gotoMobile(view, el) {
+  // Atualizar bottom nav
+  document.querySelectorAll('.bottom-nav-item').forEach(item => {
+    item.classList.remove('active');
+  });
+  if (el) el.classList.add('active');
+  
+  // Redirecionar para função goto original ou criar nova view
+  if (view === 'config') {
+    loadConfig();
+  } else {
+    goto(view, null);
+  }
+}
+
+// ══════════════════════════════════════════════
+//  TELA DE CONFIGURAÇÕES (NOVA)
+// ══════════════════════════════════════════════
+
+async function loadConfig() {
+  // Esconder todas as views
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  
+  // Verificar se view de config existe, senão criar
+  let configView = document.getElementById('v-config');
+  if (!configView) {
+    configView = document.createElement('div');
+    configView.id = 'v-config';
+    configView.className = 'view';
+    document.querySelector('.main').appendChild(configView);
+  }
+  
+  configView.classList.add('active');
+  
+  const profile = await DB.getProfile();
+  const ganhosExtras = await DB.getGanhosExtras();
+  
+  configView.innerHTML = `
+    <div class="mobile-container">
+      <div class="view-head">
+        <h1>⚙️ Configurações</h1>
+      </div>
+      
+      <!-- Perfil -->
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-head">
+          <h3>👤 Perfil</h3>
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <label>Nome</label>
+            <input type="text" id="cfg-nome" class="form-input" value="${profile.nome || ''}" placeholder="Seu nome">
+          </div>
+          <div class="form-group">
+            <label>Salário Mensal</label>
+            <input type="number" id="cfg-salario" class="form-input" value="${profile.salario || 0}" min="0" step="0.01">
+          </div>
+          <div class="form-group">
+            <label>Outras Rendas</label>
+            <input type="number" id="cfg-outras" class="form-input" value="${profile.outras_rendas || 0}" min="0" step="0.01">
+          </div>
+          <div class="form-group">
+            <label>Dia de Pagamento</label>
+            <input type="number" id="cfg-dia" class="form-input" value="${profile.dia_pagamento || 5}" min="1" max="31">
+          </div>
+          <button class="btn-primary full" onclick="salvarConfigPerfil()">Salvar Perfil</button>
+        </div>
+      </div>
+      
+      <!-- Ganhos Extras -->
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-head">
+          <h3>💰 Ganhos Extras</h3>
+          <button class="btn-sm btn-edit" onclick="abrirModalGanhoExtra()">+ Adicionar</button>
+        </div>
+        <div class="card-body">
+          <div id="lista-ganhos-extras">
+            ${ganhosExtras.length === 0 ? 
+              '<p style="color: var(--txt3); text-align: center; padding: 1rem;">Nenhum ganho extra cadastrado</p>' :
+              ganhosExtras.map(g => `
+                <div class="mobile-category-item" style="margin-bottom: 0.5rem;">
+                  <div class="icon">💵</div>
+                  <div class="info">
+                    <div class="name">${g.nome}</div>
+                    <div class="amount">R$ ${fmt(g.valor)}</div>
+                  </div>
+                  <button class="btn-sm btn-del" onclick="deletarGanhoExtra(${g.id}, '${g.nome}')">🗑️</button>
+                </div>
+              `).join('')
+            }
+          </div>
+        </div>
+      </div>
+      
+      <!-- Tema -->
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-head">
+          <h3>🎨 Tema</h3>
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <label>Cor do Tema</label>
+            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; margin-top: 0.5rem;">
+              ${TEMAS.cores.map(cor => `
+                <button 
+                  class="tema-cor-btn ${(profile.tema_cor || 'roxo') === cor ? 'active' : ''}" 
+                  data-cor="${cor}"
+                  onclick="selecionarTemaCor('${cor}')"
+                  style="
+                    height: 50px;
+                    border-radius: 10px;
+                    border: 2px solid ${(profile.tema_cor || 'roxo') === cor ? 'var(--acc)' : 'var(--bdr)'};
+                    background: ${getCorTema(cor)};
+                    cursor: pointer;
+                    transition: all var(--trans);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1.2rem;
+                  "
+                >
+                  ${(profile.tema_cor || 'roxo') === cor ? '✓' : ''}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+          
+          <div class="form-group" style="margin-top: 1rem;">
+            <label>Modo</label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.5rem;">
+              <button 
+                class="tema-modo-btn ${(profile.tema_modo || 'escuro') === 'claro' ? 'active' : ''}"
+                onclick="selecionarTemaModo('claro')"
+                style="
+                  padding: 0.75rem;
+                  border-radius: 10px;
+                  border: 2px solid ${(profile.tema_modo || 'escuro') === 'claro' ? 'var(--acc)' : 'var(--bdr)'};
+                  background: var(--surf);
+                  cursor: pointer;
+                  transition: all var(--trans);
+                  font-weight: 600;
+                "
+              >
+                ☀️ Claro
+              </button>
+              <button 
+                class="tema-modo-btn ${(profile.tema_modo || 'escuro') === 'escuro' ? 'active' : ''}"
+                onclick="selecionarTemaModo('escuro')"
+                style="
+                  padding: 0.75rem;
+                  border-radius: 10px;
+                  border: 2px solid ${(profile.tema_modo || 'escuro') === 'escuro' ? 'var(--acc)' : 'var(--bdr)'};
+                  background: var(--surf);
+                  cursor: pointer;
+                  transition: all var(--trans);
+                  font-weight: 600;
+                "
+              >
+                🌙 Escuro
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Sobre -->
+      <div class="card">
+        <div class="card-head">
+          <h3>ℹ️ Sobre</h3>
+        </div>
+        <div class="card-body" style="text-align: center;">
+          <p style="color: var(--txt2); font-size: 0.85rem; margin-bottom: 0.5rem;">
+            <strong>FinFinance v2.0</strong>
+          </p>
+          <p style="color: var(--txt3); font-size: 0.75rem;">
+            Controle financeiro pessoal inteligente
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function getCorTema(cor) {
+  const cores = {
+    'roxo': 'linear-gradient(135deg, #8B5CF6, #A78BFA)',
+    'verde': 'linear-gradient(135deg, #10B981, #34D399)',
+    'vermelho': 'linear-gradient(135deg, #EF4444, #F87171)',
+    'branco': 'linear-gradient(135deg, #F4F4F5, #FFFFFF)',
+    'preto': 'linear-gradient(135deg, #18181B, #09090B)'
+  };
+  return cores[cor] || cores.roxo;
+}
+
+async function selecionarTemaCor(cor) {
+  const profile = await DB.getProfile();
+  await mudarTema(cor, profile.tema_modo || 'escuro');
+  loadConfig(); // Recarregar para atualizar UI
+  toast('Tema atualizado!', 'ok');
+}
+
+async function selecionarTemaModo(modo) {
+  const profile = await DB.getProfile();
+  await mudarTema(profile.tema_cor || 'roxo', modo);
+  loadConfig(); // Recarregar para atualizar UI
+  toast('Modo atualizado!', 'ok');
+}
+
+async function salvarConfigPerfil() {
+  const profile = await DB.getProfile();
+  profile.nome = document.getElementById('cfg-nome').value || 'Usuário';
+  profile.salario = parseFloat(document.getElementById('cfg-salario').value) || 0;
+  profile.outras_rendas = parseFloat(document.getElementById('cfg-outras').value) || 0;
+  profile.dia_pagamento = parseInt(document.getElementById('cfg-dia').value) || 5;
+  
+  await DB.updateProfile(profile);
+  toast('Perfil atualizado!', 'ok');
+  
+  // Atualizar nome no header se existir
+  const userNm = document.getElementById('user-nm');
+  if (userNm) userNm.textContent = profile.nome.split(' ')[0];
+  
+  const userAv = document.getElementById('user-av');
+  if (userAv) userAv.textContent = profile.nome.charAt(0).toUpperCase();
+}
+
+// ══════════════════════════════════════════════
+//  GANHOS EXTRAS
+// ══════════════════════════════════════════════
+
+function abrirModalGanhoExtra() {
+  let modal = document.getElementById('m-ganho-extra');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'm-ganho-extra';
+    modal.className = 'overlay';
+    modal.onclick = (e) => { if (e.target === e.currentTarget) fecharModal('m-ganho-extra'); };
+    modal.innerHTML = `
+      <div class="modal">
+        <div class="modal-head">
+          <h2>Adicionar Ganho Extra</h2>
+          <button class="close-btn" onclick="fecharModal('m-ganho-extra')">✕</button>
+        </div>
+        <form onsubmit="salvarGanhoExtra(event)">
+          <div class="form-group">
+            <label>Descrição *</label>
+            <input type="text" id="ge-nome" class="form-input" required placeholder="Ex: Freelance, Brique, Comissão">
+          </div>
+          <div class="form-group">
+            <label>Valor *</label>
+            <input type="number" id="ge-valor" class="form-input" required min="0.01" step="0.01" placeholder="0,00">
+          </div>
+          <button type="submit" class="btn-primary full">Adicionar</button>
+        </form>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+  
+  // Limpar campos
+  document.getElementById('ge-nome').value = '';
+  document.getElementById('ge-valor').value = '';
+  
+  modal.classList.add('open');
+}
+
+function fecharModal(id) {
+  document.getElementById(id)?.classList.remove('open');
+}
+
+async function salvarGanhoExtra(e) {
+  e.preventDefault();
+  
+  const nome = document.getElementById('ge-nome').value;
+  const valor = parseFloat(document.getElementById('ge-valor').value);
+  
+  await DB.addGanhoExtra({ nome, valor });
+  
+  fecharModal('m-ganho-extra');
+  toast('Ganho extra adicionado!', 'ok');
+  loadConfig(); // Recarregar lista
+}
+
+async function deletarGanhoExtra(id, nome) {
+  if (!confirm(`Remover "${nome}"?`)) return;
+  
+  await DB.deleteGanhoExtra(id);
+  toast('Ganho extra removido!', 'ok');
+  loadConfig();
+}
+
+// ══════════════════════════════════════════════
+//  INICIALIZAÇÃO V2
+// ══════════════════════════════════════════════
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Apenas criar bottom nav — tema é aplicado após login pelo bootApp
+  if (window.innerWidth <= 768) {
+    criarBottomNav();
+  }
+});
+
+// Recriar bottom nav ao redimensionar
+window.addEventListener('resize', () => {
+  if (window.innerWidth <= 768 && !document.querySelector('.bottom-nav')) {
+    criarBottomNav();
+  } else if (window.innerWidth > 768 && document.querySelector('.bottom-nav')) {
+    document.querySelector('.bottom-nav')?.remove();
+  }
+});
+
+</script>
+</body>
+</html>
