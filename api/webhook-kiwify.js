@@ -1,9 +1,10 @@
 /**
- * FinFinance — Webhook Kiwify
+ * FinFinance — Webhook Kiwify (produção)
  */
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
+const KIWIFY_TOKEN = process.env.KIWIFY_WEBHOOK_TOKEN;
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -12,18 +13,23 @@ export default async function handler(req, res) {
 
   const body = req.body;
 
-  // Logar TUDO para diagnóstico
-  console.log('[Webhook] Headers:', JSON.stringify(req.headers));
-  console.log('[Webhook] Query:', JSON.stringify(req.query));
-  console.log('[Webhook] Body:', JSON.stringify(body));
+  // Kiwify envia token no body como webhook_token
+  const tokenRecebido =
+    body?.webhook_token ||
+    body?.token ||
+    req.query?.token ||
+    req.headers?.['x-kiwify-token'];
+
+  if (KIWIFY_TOKEN && tokenRecebido !== KIWIFY_TOKEN) {
+    console.error('[Webhook] Token inválido:', tokenRecebido);
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
 
   try {
-    // Extrair email — Kiwify usa vários formatos
     const email =
       body?.Customer?.email ||
       body?.customer?.email ||
       body?.buyer?.email ||
-      body?.Buyer?.email ||
       body?.email ||
       body?.customer_email;
 
@@ -31,7 +37,7 @@ export default async function handler(req, res) {
       body?.order_status ||
       body?.status ||
       body?.event ||
-      body?.type;
+      body?.type || '';
 
     const planName =
       body?.Product?.name ||
@@ -42,13 +48,14 @@ export default async function handler(req, res) {
     console.log('[Webhook] Email:', email, '| Status:', status, '| Plano:', planName);
 
     if (!email) {
-      return res.status(200).json({ ok: true, aviso: 'email não encontrado', body });
+      console.error('[Webhook] Email não encontrado');
+      return res.status(200).json({ ok: true });
     }
 
     // Mapear status
     let subscription_status = 'inactive';
     let expires_at = null;
-    const s = (status || '').toLowerCase();
+    const s = status.toLowerCase();
 
     if (s.includes('paid') || s.includes('approved') || s.includes('active')) {
       subscription_status = 'active';
@@ -80,9 +87,8 @@ export default async function handler(req, res) {
     );
 
     const updated = await updateRes.json();
-    console.log('[Webhook] Supabase resposta:', JSON.stringify(updated));
 
-    // Se não existia, criar
+    // Se não existia ainda, criar
     if (!updated || updated.length === 0) {
       await fetch(`${SUPABASE_URL}/rest/v1/users`, {
         method: 'POST',
@@ -102,6 +108,7 @@ export default async function handler(req, res) {
       console.log('[Webhook] Novo usuário criado:', email);
     }
 
+    console.log('[Webhook] ✅', email, '→', subscription_status);
     return res.status(200).json({ ok: true, email, subscription_status, plan_type });
 
   } catch (err) {
