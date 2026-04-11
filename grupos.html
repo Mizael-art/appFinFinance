@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grupos — FinFinance</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f0f17;
+      --surface: #1a1a2e;
+      --surface2: #16213e;
+      --accent: #7c3aed;
+      --accent2: #a855f7;
+      --green: #22c55e;
+      --red: #ef4444;
+      --yellow: #eab308;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --border: #2d2d4e;
+      --radius: 12px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    header h1 { font-size: 1.2rem; font-weight: 700; }
+    header h1 span { color: var(--accent2); }
+    .btn-voltar {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: .85rem;
+    }
+    .btn-voltar:hover { border-color: var(--accent); color: var(--text); }
+
+    /* ── Layout ── */
+    .container { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      top: 80px;
+      right: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 18px;
+      font-size: .9rem;
+      z-index: 999;
+      display: none;
+      animation: slideIn .2s ease;
+    }
+    #toast.ok  { border-color: var(--green); color: var(--green); }
+    #toast.err { border-color: var(--red);   color: var(--red); }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .card-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ── Botões ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 18px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: .9rem;
+      font-weight: 600;
+      transition: opacity .15s;
+    }
+    .btn:hover { opacity: .85; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-outline { background: none; border: 1px solid var(--border); color: var(--text); }
+    .btn-danger  { background: var(--red); color: #fff; }
+    .btn-sm { padding: 6px 12px; font-size: .8rem; }
+
+    /* ── Input ── */
+    input[type="text"], select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 10px 14px;
+      font-size: .9rem;
+      width: 100%;
+    }
+    input[type="text"]:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    /* ── Lista de Grupos ── */
+    .grupos-lista { display: grid; gap: 12px; }
+    .grupo-item {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .grupo-item:hover { border-color: var(--accent); cursor: pointer; }
+    .grupo-info { flex: 1; }
+    .grupo-nome { font-weight: 600; margin-bottom: 4px; }
+    .grupo-meta { font-size: .8rem; color: var(--muted); }
+    .grupo-actions { display: flex; gap: 8px; }
+
+    /* ── Tabs ── */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--surface2);
+      border-radius: var(--radius);
+      padding: 4px;
+      margin-bottom: 20px;
+    }
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: .9rem;
+      font-weight: 500;
+      color: var(--muted);
+      border: none;
+      background: none;
+      transition: all .15s;
+    }
+    .tab.active { background: var(--accent); color: #fff; }
+
+    /* ── Resumo financeiro ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 600px) { .stats-grid { grid-template-columns: 1fr; } }
+    .stat-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      text-align: center;
+    }
+    .stat-label { font-size: .75rem; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .05em; }
+    .stat-value { font-size: 1.4rem; font-weight: 700; }
+    .stat-value.green { color: var(--green); }
+    .stat-value.red   { color: var(--red); }
+    .stat-value.yellow { color: var(--yellow); }
+
+    /* ── Membros ── */
+    .membros-lista { display: grid; gap: 10px; }
+    .membro-row {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .membro-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+    .membro-info { flex: 1; }
+    .membro-nome { font-weight: 600; font-size: .95rem; }
+    .membro-role { font-size: .75rem; color: var(--muted); }
+    .badge-perm {
+      font-size: .7rem;
+      padding: 3px 8px;
+      border-radius: 20px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .badge-full          { background: #166534; color: #86efac; }
+    .badge-expenses_only { background: #7c2d12; color: #fed7aa; }
+    .badge-partial       { background: #713f12; color: #fef08a; }
+    .badge-hidden        { background: #1e1e2e; color: #64748b; border: 1px solid var(--border); }
+
+    /* ── Despesas ── */
+    .despesas-lista { display: grid; gap: 8px; margin-top: 12px; max-height: 300px; overflow-y: auto; }
+    .despesa-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      background: var(--surface2);
+      border-radius: 8px;
+      font-size: .88rem;
+    }
+    .despesa-row .nome { font-weight: 500; }
+    .despesa-row .cat  { font-size: .75rem; color: var(--muted); }
+    .despesa-row .valor { color: var(--red); font-weight: 600; }
+
+    /* ── Privacidade Selector ── */
+    .privacy-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .privacy-box label { font-size: .85rem; color: var(--muted); display: block; margin-bottom: 8px; }
+    .privacy-options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    @media (max-width: 500px) { .privacy-options { grid-template-columns: 1fr; } }
+    .perm-btn {
+      padding: 10px;
+      border-radius: 8px;
+      border: 2px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      text-align: left;
+      transition: all .15s;
+    }
+    .perm-btn:hover { border-color: var(--accent); }
+    .perm-btn.selected { border-color: var(--accent); background: #3b1f7a30; }
+    .perm-btn .perm-title { font-weight: 600; font-size: .85rem; margin-bottom: 2px; }
+    .perm-btn .perm-desc  { font-size: .75rem; color: var(--muted); }
+
+    /* ── Link convite ── */
+    .invite-link-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .invite-link-box input { background: none; border: none; color: var(--text); flex: 1; font-size: .82rem; }
+    .invite-link-box input:focus { outline: none; }
+
+    /* ── Meses selector ── */
+    .mes-selector {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .mes-selector select { width: auto; }
+
+    /* ── Loader / empty ── */
+    .loading { text-align: center; padding: 40px; color: var(--muted); }
+    .empty   { text-align: center; padding: 40px 20px; color: var(--muted); }
+    .empty .empty-icon { font-size: 2.5rem; margin-bottom: 8px; }
+    .empty p { margin-bottom: 16px; }
+
+    /* ── Modal simples ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: #00000090;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 16px;
+    }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      width: 100%;
+      max-width: 440px;
+    }
+    .modal h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 16px; justify-content: flex-end; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { font-size: .82rem; color: var(--muted); display: block; margin-bottom: 6px; }
+
+    .hidden { display: none !important; }
+    hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>👥 <span>Grupos</span> FinFinance</h1>
+  <button class="btn-voltar" onclick="window.history.back()">← Voltar</button>
+</header>
+
+<div id="toast"></div>
+
+<!-- ════════════════════════════════════════════
+     TELA 1: Lista de Grupos
+═════════════════════════════════════════════ -->
+<div id="tela-lista" class="container">
+
+  <!-- Convite via URL -->
+  <div id="bloco-convite" class="card hidden">
+    <div class="card-title">🎉 Você foi convidado para um grupo!</div>
+    <p style="color:var(--muted);font-size:.9rem;margin-bottom:16px;">
+      Clique em <strong>Aceitar Convite</strong> para entrar no grupo.
+    </p>
+    <button class="btn btn-primary" onclick="GRUPOS_UI.aceitarConviteURL()">✅ Aceitar Convite</button>
+  </div>
+
+  <!-- Criar grupo -->
+  <div class="card">
+    <div class="card-title">➕ Criar Novo Grupo</div>
+    <div style="display:flex;gap:10px;">
+      <input type="text" id="input-nome-grupo" placeholder="Ex: Casa, Viagem, Casal..." />
+      <button class="btn btn-primary" onclick="GRUPOS_UI.criarGrupo()" style="white-space:nowrap">Criar</button>
+    </div>
+  </div>
+
+  <!-- Lista de grupos -->
+  <div class="card">
+    <div class="card-title">📋 Meus Grupos</div>
+    <div id="grupos-lista">
+      <div class="loading">Carregando grupos...</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ════════════════════════════════════════════
+     TELA 2: Dentro de um Grupo
+═════════════════════════════════════════════ -->
+<div id="tela-grupo" class="container hidden">
+
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+    <button class="btn btn-outline btn-sm" onclick="GRUPOS_UI.voltarLista()">← Grupos</button>
+    <h2 id="grupo-titulo" style="font-size:1.2rem;font-weight:700;flex:1;"></h2>
+    <button class="btn btn-outline btn-sm" id="btn-convite" onclick="GRUPOS_UI.abrirModalConvite()">🔗 Convidar</button>
+    <button class="btn btn-danger btn-sm" id="btn-sair" onclick="GRUPOS_UI.sairGrupo()">Sair</button>
+  </div>
+
+  <!-- Mês -->
+  <div class="mes-selector">
+    <span style="color:var(--muted);font-size:.85rem;">Período:</span>
+    <select id="sel-ano" onchange="GRUPOS_UI.recarregarDados()"></select>
+    <select id="sel-mes" onchange="GRUPOS_UI.recarregarDados()"></select>
+  </div>
+
+  <!-- Minha privacidade -->
+  <div class="privacy-box">
+    <label>🔒 Minha privacidade neste grupo</label>
+    <div class="privacy-options">
+      <button class="perm-btn" data-perm="full" onclick="GRUPOS_UI.mudarPermissao('full', this)">
+        <div class="perm-title">👁️ Mostrar tudo</div>
+        <div class="perm-desc">Ganhos + gastos visíveis</div>
+      </button>
+      <button class="perm-btn" data-perm="expenses_only" onclick="GRUPOS_UI.mudarPermissao('expenses_only', this)">
+        <div class="perm-title">💸 Só gastos</div>
+        <div class="perm-desc">Apenas despesas visíveis</div>
+      </button>
+      <button class="perm-btn" data-perm="partial" onclick="GRUPOS_UI.mudarPermissao('partial', this)">
+        <div class="perm-title">🧩 Parcial</div>
+        <div class="perm-desc">Apenas saldo visível</div>
+      </button>
+      <button class="perm-btn" data-perm="hidden" onclick="GRUPOS_UI.mudarPermissao('hidden', this)">
+        <div class="perm-title">🙈 Oculto</div>
+        <div class="perm-desc">Nada é compartilhado</div>
+      </button>
+    </div>
+  </div>
+
+  <!-- Abas -->
+  <div class="tabs">
+    <button class="tab active" id="tab-individual" onclick="GRUPOS_UI.mudarAba('individual')">📊 Individual</button>
+    <button class="tab" id="tab-compartilhado" onclick="GRUPOS_UI.mudarAba('compartilhado')">👥 Compartilhado</button>
+    <button class="tab" id="tab-membros" onclick="GRUPOS_UI.mudarAba('membros')">👤 Membros</button>
+  </div>
+
+  <!-- Conteúdo das abas -->
+  <div id="aba-individual">
+    <div id="dados-individual" class="loading">Carregando...</div>
+  </div>
+
+  <div id="aba-compartilhado" class="hidden">
+    <div id="dados-compartilhado" class="loading">Carregando...</div>
+  </div>
+
+  <div id="aba-membros" class="hidden">
+    <div id="dados-membros" class="loading">Carregando...</div>
+  </div>
+
+</div>
+
+<!-- Modal Convite -->
+<div id="modal-convite" class="modal-overlay hidden">
+  <div class="modal">
+    <h3>🔗 Convidar para o Grupo</h3>
+    <p style="font-size:.9rem;color:var(--muted);margin-bottom:16px;">
+      Compartilhe o link abaixo. Válido por 7 dias.
+    </p>
+    <div class="invite-link-box">
+      <input type="text" id="invite-link-input" readonly />
+      <button class="btn btn-primary btn-sm" onclick="GRUPOS_UI.copiarLink()">Copiar</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="GRUPOS_UI.fecharModal('modal-convite')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- grupos-db.js já inclui tudo que precisa (standalone) -->
+<script src="grupos-db.js"></script>
+
+<script>
+// ══════════════════════════════════════════════
+//  GRUPOS_UI — controlador de interface
+// ══════════════════════════════════════════════
+const GRUPOS_UI = (() => {
+  let grupoAtual = null;
+  let abaAtual = 'individual';
+  let dadosCache = null;
+
+  // ── Utilitários ───────────────────────────
+
+  function fmt(v) {
+    if (v == null) return '—';
+    return 'R$ ' + parseFloat(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function toast(msg, tipo = 'ok') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = tipo;
+    el.style.display = 'block';
+    setTimeout(() => { el.style.display = 'none'; }, 3000);
+  }
+
+  function show(id) { document.getElementById(id)?.classList.remove('hidden'); }
+  function hide(id) { document.getElementById(id)?.classList.add('hidden'); }
+
+  function iniciarSelects() {
+    const anoEl = document.getElementById('sel-ano');
+    const mesEl = document.getElementById('sel-mes');
+    const hoje = new Date();
+    anoEl.innerHTML = '';
+    for (let y = hoje.getFullYear(); y >= hoje.getFullYear() - 2; y--) {
+      anoEl.innerHTML += `<option value="${y}" ${y === hoje.getFullYear() ? 'selected' : ''}>${y}</option>`;
+    }
+    const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    mesEl.innerHTML = '';
+    meses.forEach((m, i) => {
+      mesEl.innerHTML += `<option value="${i+1}" ${i+1 === hoje.getMonth()+1 ? 'selected' : ''}>${m}</option>`;
+    });
+  }
+
+  // ── Lista de grupos ───────────────────────
+
+  async function carregarLista() {
+    const el = document.getElementById('grupos-lista');
+    el.innerHTML = '<div class="loading">Carregando...</div>';
+
+    const grupos = await window.GRUPOS.listarGrupos();
+
+    if (!grupos.length) {
+      el.innerHTML = `
+        <div class="empty">
+          <div class="empty-icon">👥</div>
+          <p>Você ainda não faz parte de nenhum grupo.<br>Crie um acima ou aceite um convite.</p>
+        </div>`;
+      return;
+    }
+
+    el.innerHTML = '<div class="grupos-lista">' +
+      grupos.map(g => `
+        <div class="grupo-item" onclick="GRUPOS_UI.abrirGrupo('${g.id}', '${g.name.replace(/'/g,"\\'")}')">
+          <div class="grupo-info">
+            <div class="grupo-nome">👥 ${g.name}</div>
+            <div class="grupo-meta">Criado em ${new Date(g.created_at).toLocaleDateString('pt-BR')}</div>
+          </div>
+          <div class="grupo-actions" onclick="event.stopPropagation()">
+            <button class="btn btn-outline btn-sm" onclick="GRUPOS_UI.abrirGrupo('${g.id}', '${g.name.replace(/'/g,"\\'")}')">Abrir →</button>
+          </div>
+        </div>`).join('') +
+    '</div>';
+  }
+
+  async function criarGrupo() {
+    const nome = document.getElementById('input-nome-grupo').value.trim();
+    if (!nome) return toast('Digite um nome para o grupo', 'err');
+    const res = await window.GRUPOS.criarGrupo(nome);
+    if (res.ok) {
+      document.getElementById('input-nome-grupo').value = '';
+      toast('Grupo criado com sucesso!');
+      carregarLista();
+    } else {
+      const errMsg = res.error || 'Erro ao criar grupo';
+      toast(errMsg, 'err');
+      document.getElementById('grupos-lista').innerHTML = `
+        <div class='empty'>
+          <div class='empty-icon'>⚠️</div>
+          <p style='color:var(--red);font-weight:600;margin-bottom:8px;'>Erro ao criar grupo</p>
+          <p style='font-size:.82rem;line-height:1.6;'>
+            Provavelmente as tabelas ainda não foram criadas no Supabase.<br>
+            Execute o arquivo <strong>GRUPOS_EXECUTE_NO_SUPABASE.sql</strong>
+            no <strong>Supabase → SQL Editor</strong> e tente novamente.
+          </p>
+        </div>`;
+    }
+  }
+
+  // ── Grupo aberto ──────────────────────────
+
+  async function abrirGrupo(id, nome) {
+    grupoAtual = { id, nome };
+    document.getElementById('grupo-titulo').textContent = nome;
+    hide('tela-lista');
+    show('tela-grupo');
+    iniciarSelects();
+    mudarAba('individual');
+    await recarregarDados();
+  }
+
+  function voltarLista() {
+    grupoAtual = null;
+    dadosCache = null;
+    hide('tela-grupo');
+    show('tela-lista');
+    carregarLista();
+  }
+
+  async function recarregarDados() {
+    if (!grupoAtual) return;
+    const ano = parseInt(document.getElementById('sel-ano').value);
+    const mes = parseInt(document.getElementById('sel-mes').value);
+
+    document.getElementById('dados-individual').innerHTML = '<div class="loading">Carregando...</div>';
+    document.getElementById('dados-compartilhado').innerHTML = '<div class="loading">Carregando...</div>';
+    document.getElementById('dados-membros').innerHTML = '<div class="loading">Carregando...</div>';
+
+    dadosCache = await window.GRUPOS.getDadosGrupo(grupoAtual.id, ano, mes);
+
+    if (!dadosCache || dadosCache.error) {
+      toast(dadosCache?.error || 'Erro ao carregar dados', 'err');
+      return;
+    }
+
+    // Atualizar botões de privacidade
+    document.querySelectorAll('.perm-btn').forEach(btn => {
+      btn.classList.toggle('selected', btn.dataset.perm === dadosCache.minhaPermissao);
+    });
+
+    renderIndividual(dadosCache.individual);
+    renderCompartilhado(dadosCache.compartilhado);
+    await renderMembros(dadosCache.compartilhado.membros);
+  }
+
+  // ── Aba Individual ────────────────────────
+
+  function renderIndividual(data) {
+    const saldoCor = data.saldo >= 0 ? 'green' : 'red';
+    document.getElementById('dados-individual').innerHTML = `
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-label">💰 Ganhos</div>
+          <div class="stat-value green">${fmt(data.ganhos)}</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">💸 Gastos</div>
+          <div class="stat-value red">${fmt(data.gastos)}</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">📊 Saldo</div>
+          <div class="stat-value ${saldoCor}">${fmt(data.saldo)}</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">📋 Minhas Despesas do Período</div>
+        ${renderDespesas(data.despesas)}
+      </div>`;
+  }
+
+  function renderDespesas(despesas) {
+    if (!despesas || !despesas.length) {
+      return '<div class="empty"><p>Nenhuma despesa no período.</p></div>';
+    }
+    return `<div class="despesas-lista">
+      ${despesas.map(d => `
+        <div class="despesa-row">
+          <div>
+            <div class="nome">${d.nome}</div>
+            <div class="cat">${d.categoria} · ${new Date(d.data + 'T12:00:00').toLocaleDateString('pt-BR')}</div>
+          </div>
+          <div class="valor">${fmt(d.valor)}</div>
+        </div>`).join('')}
+    </div>`;
+  }
+
+  // ── Aba Compartilhada ─────────────────────
+
+  function renderCompartilhado(data) {
+    const saldoCor = data.saldoGeral >= 0 ? 'green' : 'red';
+    const membrosVisiveis = data.membros.filter(m => m.visivel);
+    const membrosOcultos  = data.membros.filter(m => !m.visivel);
+
+    const linhasMembros = membrosVisiveis.map(m => {
+      const saldoM = m.saldo != null ? m.saldo : null;
+      const saldoMCor = saldoM != null ? (saldoM >= 0 ? 'green' : 'red') : '';
+      return `
+        <div class="membro-row">
+          <div class="membro-avatar">${m.nome.charAt(0).toUpperCase()}</div>
+          <div class="membro-info">
+            <div class="membro-nome">${m.nome}</div>
+          </div>
+          <div style="display:flex;gap:16px;font-size:.85rem;">
+            ${m.ganhos != null ? `<span style="color:var(--green)">+${fmt(m.ganhos)}</span>` : ''}
+            ${m.gastos != null ? `<span style="color:var(--red)">-${fmt(m.gastos)}</span>` : ''}
+            ${m.saldo != null ? `<span class="${saldoMCor}" style="font-weight:600">${fmt(m.saldo)}</span>` : ''}
+          </div>
+        </div>`;
+    }).join('');
+
+    const ocultosInfo = membrosOcultos.length
+      ? `<p style="color:var(--muted);font-size:.82rem;margin-top:8px;">
+           + ${membrosOcultos.length} membro(s) com dados ocultos não entram no total.
+         </p>`
+      : '';
+
+    document.getElementById('dados-compartilhado').innerHTML = `
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-label">💰 Total Ganhos</div>
+          <div class="stat-value green">${fmt(data.totalGanhos)}</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">💸 Total Gastos</div>
+          <div class="stat-value red">${fmt(data.totalGastos)}</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">📊 Saldo Geral</div>
+          <div class="stat-value ${saldoCor}">${fmt(data.saldoGeral)}</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">👥 Por Membro</div>
+        <div class="membros-lista">${linhasMembros || '<div class="empty"><p>Nenhum membro com dados visíveis.</p></div>'}</div>
+        ${ocultosInfo}
+      </div>`;
+  }
+
+  // ── Aba Membros ───────────────────────────
+
+  async function renderMembros(membrosDados) {
+    const membros = await window.GRUPOS.listarMembros(grupoAtual.id);
+    const uid = window.AUTH?.getSession?.()?.user?.id;
+    const euMembro = dadosCache?.meuRole;
+
+    const labels = {
+      full: 'Tudo',
+      expenses_only: 'Só gastos',
+      partial: 'Parcial',
+      hidden: 'Oculto'
+    };
+    const badgeClass = {
+      full: 'full',
+      expenses_only: 'expenses_only',
+      partial: 'partial',
+      hidden: 'hidden'
+    };
+
+    const linhas = membros.map(m => {
+      const isMe = m.user_id === uid;
+      const dadoM = membrosDados.find(d => d.user_id === m.user_id);
+      const nome = dadoM?.nome || 'Membro';
+      const removerBtn = euMembro === 'owner' && !isMe
+        ? `<button class="btn btn-danger btn-sm" onclick="GRUPOS_UI.removerMembro('${m.user_id}','${nome}')">Remover</button>`
+        : '';
+
+      return `
+        <div class="membro-row">
+          <div class="membro-avatar">${nome.charAt(0).toUpperCase()}</div>
+          <div class="membro-info">
+            <div class="membro-nome">${nome} ${isMe ? '<span style="color:var(--muted);font-size:.75rem;">(você)</span>' : ''}</div>
+            <div class="membro-role">${m.role === 'owner' ? '👑 Dono' : '👤 Membro'}</div>
+          </div>
+          <span class="badge-perm badge-${badgeClass[m.permission_level]}">${labels[m.permission_level]}</span>
+          ${removerBtn}
+        </div>`;
+    }).join('');
+
+    document.getElementById('dados-membros').innerHTML = `
+      <div class="card">
+        <div class="card-title">👤 Participantes (${membros.length})</div>
+        <div class="membros-lista">${linhas}</div>
+      </div>`;
+  }
+
+  // ── Permissão própria ─────────────────────
+
+  async function mudarPermissao(nivel, btn) {
+    if (!grupoAtual) return;
+    document.querySelectorAll('.perm-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    const res = await window.GRUPOS.atualizarMinhaPermissao(grupoAtual.id, nivel);
+    if (res.ok) {
+      toast('Privacidade atualizada!');
+      dadosCache = null;
+      await recarregarDados();
+    } else {
+      toast('Erro ao atualizar privacidade', 'err');
+    }
+  }
+
+  // ── Sair / remover ────────────────────────
+
+  async function sairGrupo() {
+    if (!grupoAtual) return;
+    if (!confirm(`Sair do grupo "${grupoAtual.nome}"?`)) return;
+    const res = await window.GRUPOS.sairDoGrupo(grupoAtual.id);
+    if (res.ok) {
+      toast('Você saiu do grupo');
+      voltarLista();
+    } else {
+      toast('Erro ao sair do grupo', 'err');
+    }
+  }
+
+  async function removerMembro(userId, nome) {
+    if (!confirm(`Remover ${nome} do grupo?`)) return;
+    const res = await window.GRUPOS.removerMembro(grupoAtual.id, userId);
+    if (res.ok) {
+      toast(`${nome} removido(a)`);
+      await recarregarDados();
+    } else {
+      toast('Erro ao remover membro', 'err');
+    }
+  }
+
+  // ── Convite ───────────────────────────────
+
+  async function abrirModalConvite() {
+    const res = await window.GRUPOS.gerarConvite(grupoAtual.id);
+    if (!res.ok) return toast(res.error || 'Erro ao gerar convite', 'err');
+    document.getElementById('invite-link-input').value = res.link;
+    show('modal-convite');
+  }
+
+  function copiarLink() {
+    const input = document.getElementById('invite-link-input');
+    navigator.clipboard.writeText(input.value).then(() => {
+      toast('Link copiado!');
+    });
+  }
+
+  async function aceitarConviteURL() {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('convite');
+    if (!token) return;
+    const res = await window.GRUPOS.aceitarConvite(token);
+    if (res.ok) {
+      toast('Você entrou no grupo! 🎉');
+      hide('bloco-convite');
+      // Limpar URL
+      window.history.replaceState({}, '', window.location.pathname);
+      await carregarLista();
+    } else {
+      toast(res.error || 'Erro ao aceitar convite', 'err');
+    }
+  }
+
+  function fecharModal(id) { hide(id); }
+
+  // ── Abas ──────────────────────────────────
+
+  function mudarAba(aba) {
+    abaAtual = aba;
+    ['individual', 'compartilhado', 'membros'].forEach(a => {
+      document.getElementById(`aba-${a}`)?.classList.toggle('hidden', a !== aba);
+      document.getElementById(`tab-${a}`)?.classList.toggle('active', a === aba);
+    });
+  }
+
+  // ── Init ──────────────────────────────────
+
+  async function init() {
+    // Verificar se tem convite na URL
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('convite')) show('bloco-convite');
+
+    await carregarLista();
+  }
+
+  // Aguardar auth estar pronta
+  function esperarAuth(tentativas = 0) {
+    if (window.AUTH?.getSession?.()?.user) {
+      init();
+    } else if (tentativas < 20) {
+      setTimeout(() => esperarAuth(tentativas + 1), 300);
+    } else {
+      document.getElementById('grupos-lista').innerHTML =
+        '<div class="empty"><p>Faça login para ver seus grupos.</p></div>';
+    }
+  }
+
+  return {
+    init,
+    esperarAuth,
+    criarGrupo,
+    abrirGrupo,
+    voltarLista,
+    recarregarDados,
+    mudarPermissao,
+    mudarAba,
+    sairGrupo,
+    removerMembro,
+    abrirModalConvite,
+    copiarLink,
+    aceitarConviteURL,
+    fecharModal
+  };
+})();
+
+// Boot
+window.addEventListener('DOMContentLoaded', () => {
+  GRUPOS_UI.esperarAuth();
+});
+</script>
+</body>
+</html>
